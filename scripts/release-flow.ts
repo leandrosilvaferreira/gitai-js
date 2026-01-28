@@ -1,5 +1,6 @@
 import { Command } from 'commander';
 import dotenv from 'dotenv';
+import { execa } from 'execa';
 import fs from 'fs/promises';
 import inquirer from 'inquirer';
 import { createRequire } from 'module';
@@ -13,6 +14,35 @@ const require = createRequire(import.meta.url);
 const pkg = require('../package.json');
 
 dotenv.config();
+
+// Helper to run arbitrary commands (like gh) without forcing "git" prefix
+async function execCommand(command: string, args: string[], cwd: string = process.cwd(), exitOnError: boolean = true): Promise<{ stdout: string; stderr: string; exitCode: number }> {
+    try {
+        const result = await execa(command, args, { cwd, reject: false });
+        
+        if (result.exitCode !== 0) {
+            if (exitOnError) {
+                logger.error(`Error executing command: ${command} ${args.join(' ')}`);
+                logger.error(`Standard output: ${result.stdout}`);
+                logger.error(`Error output: ${result.stderr}`);
+                process.exit(1);
+            }
+        }
+        return {
+            stdout: result.stdout.trim(),
+            stderr: result.stderr.trim(),
+            exitCode: result.exitCode ?? 1
+        };
+    } catch (error: unknown) {
+         if (exitOnError) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.error(`Unexpected error executing command: ${errorMessage}`);
+            process.exit(1);
+        }
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { stdout: '', stderr: errorMessage, exitCode: 1 };
+    }
+}
 
 const program = new Command();
 
@@ -137,7 +167,7 @@ program
     // 6. GitHub Release
     logger.info('Checking for GitHub CLI (gh)...');
     try {
-        await runGitCommand(['gh', '--version'], rootDir, false);
+        await execCommand('gh', ['--version'], rootDir, false);
         
         const { createRelease } = await inquirer.prompt([{ 
             type: 'confirm', 
@@ -150,9 +180,8 @@ program
              logger.ai('Creating GitHub Release...');
              try {
                 // gh release create <tag> --title <title> --notes <notes>
-                // We use the tag as the title, or we could ask the user. Let's use releaseNotes for the content.
-                await runGitCommand([
-                    'gh', 'release', 'create', tag,
+                await execCommand('gh', [
+                    'release', 'create', tag,
                     '--title', `Release ${tag}`,
                     '--notes', releaseNotes
                 ], rootDir);
