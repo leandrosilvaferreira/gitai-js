@@ -1,11 +1,9 @@
 import fs from 'fs';
-import { createRequire } from 'module';
 import os from 'os';
 import path from 'path';
 import semver from 'semver';
 
-const require = createRequire(import.meta.url);
-const pkg = require('../../package.json');
+import { engines } from '../version.js';
 
 export interface AppConfig {
     LANGUAGE: string;
@@ -61,6 +59,6 @@ export const saveConfig = (config: AppConfig): void => {
 };
 
 export const validateNodeVersion = (): boolean => {
-    const requiredVersion = pkg.engines?.node || '>=18';
+    const requiredVersion = engines.node;
     return semver.satisfies(process.version, requiredVersion);
 };

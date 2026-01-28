@@ -1,15 +1,13 @@
 import chalk from 'chalk';
 import { execa } from 'execa';
 import inquirer from 'inquirer';
-import { createRequire } from 'module';
 import { AppConfig, CONFIG_PATH, saveConfig } from './config.js';
 
-const require = createRequire(import.meta.url);
-const pkg = require('../../package.json');
+import { version } from '../version.js';
 
 export async function runSetup(): Promise<AppConfig> {
     console.clear();
-    console.log(chalk.bold.blue(`\n🚀 Welcome to GitAI v${pkg.version} Setup! 🚀`));
+    console.log(chalk.bold.blue(`\n🚀 Welcome to GitAI v${version} Setup! 🚀`));
     console.log(chalk.dim('Let\'s get you ready to code with AI assistance.\n'));
 
     // 1. Check Prerequisites

@@ -141,6 +141,16 @@ program
     pkg.version = newVersion;
     await fs.writeFile(path.join(rootDir, 'package.json'), JSON.stringify(pkg, null, 2) + '\n');
     
+    // Update src/version.ts
+    const versionTsPath = path.join(rootDir, 'src', 'version.ts');
+    const versionTsContent = `export const version = '${newVersion}';
+export const name = 'gitai';
+export const engines = {
+  node: '>=18'
+};
+`;
+    await fs.writeFile(versionTsPath, versionTsContent, 'utf-8');
+    
     // Update CHANGELOG.md
     const changelogPath = path.join(rootDir, 'CHANGELOG.md');
     let currentChangelog = '';
@@ -151,11 +161,11 @@ program
     const newChangelog = `${releaseNotes}\n\n---\n\n${currentChangelog}`;
     await fs.writeFile(changelogPath, newChangelog, 'utf-8');
     
-    logger.success('Updated package.json and CHANGELOG.md');
+    logger.success('Updated package.json, src/version.ts, and CHANGELOG.md');
 
     // 5. Commit & Tag
     const tag = `v${newVersion}`;
-    await runGitCommand(['add', 'package.json', 'CHANGELOG.md'], rootDir);
+    await runGitCommand(['add', 'package.json', 'src/version.ts', 'CHANGELOG.md'], rootDir);
     
     // Create commit with multiline message (Title + Body)
     // -m "Title" -m "Body" handles this in git CLI

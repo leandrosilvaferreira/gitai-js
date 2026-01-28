@@ -10,14 +10,11 @@ import { detectProjectLanguage, printDetectedLanguage } from './utils/language.j
 import { logger } from './utils/logger.js';
 import { runSetup } from './utils/setup.js';
 
-import { createRequire } from 'module';
-
-const require = createRequire(import.meta.url);
-const pkg = require('../package.json');
+import { engines, name, version } from './version.js';
 
 // 0. Validate Node Version
 if (!validateNodeVersion()) {
-    console.error(chalk.red(`\n❌  GitAI requires Node.js ${pkg.engines?.node || '>=18'} or higher.`));
+    console.error(chalk.red(`\n❌  GitAI requires Node.js ${engines.node} or higher.`));
     console.error(chalk.yellow(`   Current version: ${process.version}\n`));
     process.exit(1);
 }
@@ -25,9 +22,19 @@ if (!validateNodeVersion()) {
 const program = new Command();
 
 program
-  .name('gitai')
+  .name(name)
   .description('AI-powered git commit assistant')
-  .version(pkg.version);
+  .version(version);
+
+// Custom help handler to show version
+program.on('--help', () => {
+    console.log('');
+    console.log(chalk.cyan('━'.repeat(50)));
+    console.log(chalk.bold.blue(`  GitAI v${version}`));
+    console.log(chalk.dim('  AI-powered git commit assistant'));
+    console.log(chalk.cyan('━'.repeat(50)));
+    console.log('');
+});
 
 program
     .argument('[projectPath]', 'The path to the project', '.')
@@ -49,7 +56,7 @@ program
             process.exit(1);
         }
 
-        logger.header(`Gitai v${pkg.version}`);
+        logger.header(`Gitai v${version}`);
         
         const projectPath = path.resolve(projectPathArg);
         logger.info(`📁 project_path: ${projectPath}\n`);
