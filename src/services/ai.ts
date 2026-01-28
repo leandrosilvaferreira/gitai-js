@@ -120,7 +120,9 @@ Line 3+: [detailed explanation of changes, reasons, and impact]
         const systemPrompt = this.getCommitSystemPrompt();
         const userPrompt = this.getCommitUserPrompt(diffOutput, projectLanguage, baseMessage);
         
-        return this.callApi(systemPrompt, userPrompt);
+        const commitMessage = await this.callApi(systemPrompt, userPrompt);
+        const signature = "\n\n🤖 Commit generated with [GitaiJS](https://github.com/leandrosilvaferreira/gitai-js)";
+        return commitMessage + signature;
     }
     
     // Logic for release notes (used by releaser.ts)
