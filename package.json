@@ -29,6 +29,10 @@
   ],
   "author": "Leandro Silva Ferreira",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leandrosilvaferreira/gitai-js"
+  },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
     "@types/node": "^22.0.0",
