@@ -43,8 +43,9 @@ program
             } else {
                 config = loadConfig();
             }
-        } catch (error: any) {
-            logger.error(`Failed to load configuration: ${error.message}`);
+        } catch (error: unknown) {
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.error(`Failed to load configuration: ${errorMessage}`);
             process.exit(1);
         }
 
@@ -63,7 +64,7 @@ program
         // Change process CWD to project path to ensure git commands run there
         try {
             process.chdir(projectPath);
-        } catch (err) {
+        } catch {
             logger.error(`Failed to change directory to ${projectPath}`);
             process.exit(1);
         }

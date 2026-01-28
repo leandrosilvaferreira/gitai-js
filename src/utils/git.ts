@@ -21,12 +21,14 @@ export async function runGitCommand(args: string[], cwd: string = process.cwd(),
             stderr: result.stderr.trim(),
             exitCode: result.exitCode ?? 1
         };
-    } catch (error: any) {
+    } catch (error: unknown) {
          if (exitOnError) {
-            logger.error(`Unexpected error executing git command: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.error(`Unexpected error executing git command: ${errorMessage}`);
             process.exit(1);
         }
-        return { stdout: '', stderr: error.message, exitCode: 1 };
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        return { stdout: '', stderr: errorMessage, exitCode: 1 };
     }
 }
 
@@ -70,7 +72,7 @@ export async function commitChanges(commitMessage: string, cwd: string): Promise
     } finally {
         try {
             await fs.unlink(tempFilePath);
-        } catch (e) {
+        } catch {
             // Ignore error if cleanup fails
         }
     }

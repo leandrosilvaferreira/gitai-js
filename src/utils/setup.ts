@@ -16,7 +16,7 @@ export async function runSetup(): Promise<AppConfig> {
     try {
         await execa('git', ['--version']);
         console.log(chalk.green('✅ Git is installed!'));
-    } catch (e) {
+    } catch {
         console.log(chalk.red('❌ Git is NOT installed or not accessible from PATH.'));
         console.log(chalk.yellow('Please install Git before proceeding.'));
         process.exit(1);
@@ -68,6 +68,7 @@ export async function runSetup(): Promise<AppConfig> {
             type: 'input',
             name: 'MODEL',
             message: 'Model ID (e.g., gpt-4o, claude-3-5-sonnet):',
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             default: (answers: any) => {
                 if (answers.PROVIDER === 'openai') return 'gpt-4o';
                 if (answers.PROVIDER === 'anthropic') return 'claude-3-5-sonnet-20240620';

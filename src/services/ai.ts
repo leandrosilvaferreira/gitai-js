@@ -194,6 +194,7 @@ If the instructions are not followed correctly, the result will not be accepted.
                 frequency_penalty: 0.0,
                 presence_penalty: 0.0,
                 [tokenParam]: 500,
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any);
 
             return completion.choices[0].message.content?.trim() || '';
@@ -225,7 +226,11 @@ If the instructions are not followed correctly, the result will not be accepted.
                     { role: 'user', content: userPrompt }
                 ]
             });
-            return (message.content[0] as any).text.trim();
+            const contentBlock = message.content[0];
+            if (contentBlock.type === 'text') {
+                return contentBlock.text.trim();
+            }
+            return '';
         }
 
         return '';

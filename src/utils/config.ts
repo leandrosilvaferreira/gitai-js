@@ -29,7 +29,7 @@ export const loadConfig = (): AppConfig => {
         throw new Error(`Configuration file not found at ${CONFIG_PATH}`);
     }
     const content = fs.readFileSync(CONFIG_PATH, 'utf-8');
-    const config: any = {};
+    const config: Record<string, string> = {};
     content.split('\n').forEach(line => {
         // Simple env parsing
         const [key, ...value] = line.split('=');
@@ -48,7 +48,7 @@ export const loadConfig = (): AppConfig => {
             config[key.trim()] = val;
         }
     });
-    return config as AppConfig;
+    return config as unknown as AppConfig;
 };
 
 export const saveConfig = (config: AppConfig): void => {

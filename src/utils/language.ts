@@ -103,7 +103,7 @@ export async function detectProjectLanguage(projectPath: string): Promise<string
         
         return "Unknown";
 
-    } catch (error) {
+    } catch {
         return "Unknown";
     }
 }

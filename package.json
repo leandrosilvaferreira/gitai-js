@@ -14,12 +14,12 @@
   },
   "scripts": {
     "start": "node dist/index.js",
-    "build": "tsc",
+    "build": "npm run lint && tsc",
     "dev": "tsx src/index.ts",
-    "lint": "eslint 'src/**/*.{ts,js}'",
+    "lint": "eslint 'src/**/*.{ts,js}' && tsc --noEmit",
     "format": "prettier --write 'src/**/*.{ts,js}'",
-    "release-notes": "tsx src/releaser.ts",
-    "release": "tsx scripts/release-flow.ts"
+    "release-notes": "npm run lint && tsx src/releaser.ts",
+    "release": "npm run lint && tsx scripts/release-flow.ts"
   },
   "keywords": [
     "git",

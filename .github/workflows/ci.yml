@@ -18,5 +18,5 @@ jobs:
         cache: 'npm'
     - run: npm ci
     - run: npm run lint
-      continue-on-error: true # For now, don't fail on lint
+      continue-on-error: false
     - run: npm run build
