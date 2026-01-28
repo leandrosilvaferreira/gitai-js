@@ -1,3 +1,21 @@
+# Release 1.0.0
+This release improves the documentation with clearer prerequisites and updated recommendations for provider model selection, making it easier to get started and configure the project.
+
+### New Features
+- None.
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- Update README prerequisites and provider model recommendations (bfd47e1).
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.0](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.12...v1.0.0)
+
+---
+
 # Release 0.0.12
 This release improves the documentation with updated installation instructions and clearer examples to help you get started faster!
 
