@@ -38,12 +38,22 @@ program
 
     // 2. Versioning
     logger.info(`Current version: ${pkg.version}`);
+
+    const patchVer = semver.inc(pkg.version, 'patch');
+    const minorVer = semver.inc(pkg.version, 'minor');
+    const majorVer = semver.inc(pkg.version, 'major');
+
     const { releaseType } = await inquirer.prompt([
         {
             type: 'list',
             name: 'releaseType',
             message: 'Select release type:',
-            choices: ['patch', 'minor', 'major', 'custom']
+            choices: [
+                { name: `patch (${patchVer})`, value: 'patch' },
+                { name: `minor (${minorVer})`, value: 'minor' },
+                { name: `major (${majorVer})`, value: 'major' },
+                { name: 'custom', value: 'custom' }
+            ]
         }
     ]);
 
