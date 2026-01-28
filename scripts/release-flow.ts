@@ -74,10 +74,11 @@ program
     // 3. Generate Notes
     // Get last tag
     let lastTag = '';
-    try {
-        const { stdout } = await runGitCommand(['describe', '--tags', '--abbrev=0'], rootDir);
-        lastTag = stdout;
-    } catch (e) {
+    const { stdout: describeStdout, exitCode: describeExitCode } = await runGitCommand(['describe', '--tags', '--abbrev=0'], rootDir, false);
+    
+    if (describeExitCode === 0) {
+        lastTag = describeStdout;
+    } else {
         logger.warning('No previous tags found. Assuming initial release.');
         lastTag = ''; 
     }
