@@ -27,6 +27,13 @@ Click the image below to watch the video tutorial about Gitai:
 
 [![AUTOMATED GIT COMMITS WITH AI: GITAI (OPEN SOURCE AND FREE)](http://img.youtube.com/vi/GAQ4mmGxg7c/0.jpg)](https://www.youtube.com/watch?v=GAQ4mmGxg7c "AUTOMATED GIT COMMITS WITH AI: GITAI (OPEN SOURCE AND FREE)")
 
+## 📋 Prerequisites
+
+Before installing Gitai, ensure you have:
+
+- **Node.js 18 or higher** - [Download here](https://nodejs.org/)
+- **Git** - [Download here](https://git-scm.com/)
+
 ## ⚡ Installing the Application
 
 Gitai can be installed globally via npm, making it available across all your projects:
@@ -53,34 +60,24 @@ Below is detailed information about each provider to help you choose the best on
 
 OpenAI is a paid service that offers advanced language models.
 
-The most efficient available model is `gpt-4o`, which has a context window of 128K tokens.
+The most efficient available model is `gpt-5.2`, which has a context window of 400K tokens.
 
-- **Cost**:
-    - $2.50 per 1M tokens for Input
-    - $10.00 per 1M tokens for Output
 - **Website**: [OpenAI](https://platform.openai.com/docs/introduction)
 
 ### Groq
 
 Groq is a free service, but with usage limits.
 
-The recommended model is `mixtral-8x7b-32768`, which offers a context window of 32,768 tokens.
+The recommended model is `llama-3.3-70b-versatile`, which offers a context window of 131,072 tokens.
 
-- **Usage Limits**:
-    - **Requests per Minute**: 30
-    - **Requests per Day**: 14,400
-    - **Tokens per Minute**: 5,000
 - **Website**: [Groq](https://console.groq.com/)
 
 ### Anthropic
 
 Anthropic is a paid service that offers advanced AI models with excellent reasoning capabilities.
 
-The recommended model is `claude-3-5-sonnet-20241022`, which has a context window of 200K tokens.
+The recommended model is `claude-sonnet-4-5-20250929`, which has a context window of 200K tokens.
 
-- **Cost**:
-    - $3.00 per 1M tokens for Input
-    - $15.00 per 1M tokens for Output
 - **Features**: Advanced reasoning, large context window, excellent code understanding
 - **Website**: [Anthropic](https://console.anthropic.com/)
 
@@ -97,7 +94,7 @@ The wizard will guide you through:
 1. **Language Selection**: Choose your preferred language (English, Portuguese, Spanish, etc.)
 2. **Provider Selection**: Choose between OpenAI, Groq, or Anthropic
 3. **API Key**: Enter your API key for the selected provider
-4. **Model Selection**: Choose the AI model to use (e.g., `gpt-4o`, `mixtral-8x7b-32768`, `claude-3-5-sonnet-20241022`)
+4. **Model Selection**: Choose the AI model to use (e.g., `gpt-5.2`, `llama-3.3-70b-versatile`, `claude-sonnet-4-5-20250929`)
 
 Your configuration is saved globally in `~/.gitai`, so you don't need to configure it for every project.
 
@@ -106,7 +103,7 @@ Your configuration is saved globally in `~/.gitai`, so you don't need to configu
 ```dotenv
 PROVIDER=openai
 API_KEY=your_openai_api_key
-MODEL=gpt-4o
+MODEL=gpt-5.2
 LANGUAGE=en
 ```
 
@@ -115,7 +112,7 @@ LANGUAGE=en
 ```dotenv
 PROVIDER=groq
 API_KEY=your_groq_api_key
-MODEL=mixtral-8x7b-32768
+MODEL=llama-3.3-70b-versatile
 LANGUAGE=en
 ```
 
@@ -124,7 +121,7 @@ LANGUAGE=en
 ```dotenv
 PROVIDER=anthropic
 API_KEY=your_anthropic_api_key
-MODEL=claude-3-5-sonnet-20241022
+MODEL=claude-sonnet-4-5-20250929
 LANGUAGE=en
 ```
 
@@ -300,6 +297,13 @@ Clique na imagem abaixo para assistir ao tutorial em vídeo sobre o Gitai:
 
 [![AUTOMATIZAÇÃO DE COMMITS DO GIT COM IA: GITAI (OPEN SOURCE E GRATUITO)](http://img.youtube.com/vi/GAQ4mmGxg7c/0.jpg)](https://www.youtube.com/watch?v=GAQ4mmGxg7c "AUTOMATIZAÇÃO DE COMMITS DO GIT COM IA: GITAI (OPEN SOURCE E GRATUITO)")
 
+## 📋 Pré-requisitos
+
+Antes de instalar o Gitai, certifique-se de ter:
+
+- **Node.js 18 ou superior** - [Baixe aqui](https://nodejs.org/)
+- **Git** - [Baixe aqui](https://git-scm.com/)
+
 ## ⚡ Instalando a Aplicação
 
 O Gitai pode ser instalado globalmente via npm, tornando-o disponível em todos os seus projetos:
@@ -326,34 +330,24 @@ Abaixo estão as informações detalhadas sobre cada provedor para ajudá-lo a e
 
 OpenAI é um serviço pago que oferece modelos de linguagem avançados.
 
-O modelo mais eficiente disponível é o `gpt-4o`, que tem uma janela de contexto de 128K tokens.
+O modelo mais eficiente disponível é o `gpt-5.2`, que tem uma janela de contexto de 400K tokens.
 
-- **Custo**:
-    - $2.50 por 1M tokens para Input
-    - $10.00 por 1M tokens para Output
 - **Site**: [OpenAI](https://platform.openai.com/docs/introduction)
 
 ### Groq
 
 Groq é um serviço gratuito, mas com limites de utilização.
 
-O modelo recomendado é o `mixtral-8x7b-32768`, que oferece uma janela de contexto de 32,768 tokens.
+O modelo recomendado é o `llama-3.3-70b-versatile`, que oferece uma janela de contexto de 131,072 tokens.
 
-- **Limites de Utilização**:
-    - **Requests por Minuto**: 30
-    - **Requests por Dia**: 14,400
-    - **Tokens por Minuto**: 5,000
 - **Site**: [Groq](https://console.groq.com/)
 
 ### Anthropic
 
 Anthropic é um serviço pago que oferece modelos de IA avançados com excelentes capacidades de raciocínio.
 
-O modelo recomendado é o `claude-3-5-sonnet-20241022`, que tem uma janela de contexto de 200K tokens.
+O modelo recomendado é o `claude-sonnet-4-5-20250929`, que tem uma janela de contexto de 200K tokens.
 
-- **Custo**:
-    - $3.00 por 1M tokens para Input
-    - $15.00 por 1M tokens para Output
 - **Características**: Raciocínio avançado, grande janela de contexto, excelente compreensão de código
 - **Site**: [Anthropic](https://console.anthropic.com/)
 
@@ -370,7 +364,7 @@ O assistente irá guiá-lo através de:
 1. **Seleção de Idioma**: Escolha seu idioma preferido (Inglês, Português, Espanhol, etc.)
 2. **Seleção de Provedor**: Escolha entre OpenAI, Groq ou Anthropic
 3. **Chave de API**: Insira sua chave de API para o provedor selecionado
-4. **Seleção de Modelo**: Escolha o modelo de IA a ser usado (ex: `gpt-4o`, `mixtral-8x7b-32768`, `claude-3-5-sonnet-20241022`)
+4. **Seleção de Modelo**: Escolha o modelo de IA a ser usado (ex: `gpt-5.2`, `llama-3.3-70b-versatile`, `claude-sonnet-4-5-20250929`)
 
 Sua configuração é salva globalmente em `~/.gitai`, então você não precisa configurá-la para cada projeto.
 
@@ -379,7 +373,7 @@ Sua configuração é salva globalmente em `~/.gitai`, então você não precisa
 ```dotenv
 PROVIDER=openai
 API_KEY=your_openai_api_key
-MODEL=gpt-4o
+MODEL=gpt-5.2
 LANGUAGE=en
 ```
 
@@ -388,7 +382,7 @@ LANGUAGE=en
 ```dotenv
 PROVIDER=groq
 API_KEY=your_groq_api_key
-MODEL=mixtral-8x7b-32768
+MODEL=llama-3.3-70b-versatile
 LANGUAGE=en
 ```
 
@@ -397,7 +391,7 @@ LANGUAGE=en
 ```dotenv
 PROVIDER=anthropic
 API_KEY=your_anthropic_api_key
-MODEL=claude-3-5-sonnet-20241022
+MODEL=claude-sonnet-4-5-20250929
 LANGUAGE=en
 ```
 
