@@ -1,5 +1,5 @@
 {
-  "name": "gitai-js",
+  "name": "@notyped/gitai",
   "version": "0.0.10",
   "description": "AI-powered git commit assistant and release note generator",
   "main": "dist/index.js",
