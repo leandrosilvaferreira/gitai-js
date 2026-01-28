@@ -1,3 +1,21 @@
+# Release 0.0.12
+This release improves the documentation with updated installation instructions and clearer examples to help you get started faster!
+
+### New Features
+- None.
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- Update README install command and add empty description examples (63e021a)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v0.0.12](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.11...v0.0.12)
+
+---
+
 # Release 0.0.11
 This release streamlines the project by renaming the package to the new scoped name, improving clarity and distribution.
 
