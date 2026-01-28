@@ -1,0 +1,24 @@
+# Dependencies
+node_modules/
+
+# Compilation Artifacts
+dist/
+
+# Environment Variables
+.env
+
+# OS Metadata
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp

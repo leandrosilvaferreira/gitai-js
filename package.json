@@ -1,0 +1,59 @@
+{
+  "name": "gitai",
+  "version": "0.0.1",
+  "description": "AI-powered git commit assistant and release note generator",
+  "main": "dist/index.js",
+  "bin": {
+    "gitai": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "start": "node dist/index.js",
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "lint": "eslint 'src/**/*.{ts,js}'",
+    "format": "prettier --write 'src/**/*.{ts,js}'",
+    "release-notes": "tsx src/releaser.ts",
+    "release": "tsx scripts/release-flow.ts"
+  },
+  "keywords": [
+    "git",
+    "ai",
+    "commit",
+    "assistant"
+  ],
+  "author": "Leandro Silva Ferreira",
+  "license": "MIT",
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/node": "^22.0.0",
+    "eslint": "^9.0.0",
+    "globals": "^17.2.0",
+    "prettier": "^3.0.0",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.21.0",
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^8.54.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.36.3",
+    "@types/semver": "^7.7.1",
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "execa": "^9.5.2",
+    "groq-sdk": "^0.15.0",
+    "inquirer": "^12.4.1",
+    "openai": "^4.82.0",
+    "semver": "^7.7.3"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  }
+}
