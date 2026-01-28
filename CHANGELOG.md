@@ -1,3 +1,21 @@
+# Release 0.0.8
+A small but important update improving the accuracy of the release documentation and changelog navigation.
+
+### New Features
+- None.
+
+### Bug Fixes
+- Fix full changelog compare URL to use the correct version tag (8344cd3).
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for 0.0.8](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.7...v0.0.8)
+
+---
+
 # Release 0.0.7
 This release improves the release process by fixing the GitHub compare link in the release message template.
 
