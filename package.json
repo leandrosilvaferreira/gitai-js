@@ -1,6 +1,6 @@
 {
   "name": "gitai",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "AI-powered git commit assistant and release note generator",
   "main": "dist/index.js",
   "bin": {

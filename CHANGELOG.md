@@ -1,3 +1,21 @@
+# Release 0.0.6
+This release improves the reliability of the release workflow by ensuring GitHub releases are created only after the tag has been successfully pushed.
+
+### New Features
+- None.
+
+### Bug Fixes
+- Create GitHub release only after pushing tag (c21ab1e).
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for 0.0.6](https://github.com/leandrosilvaferreira/gitai/compare/v0.0.5...0.0.6)
+
+---
+
 # Release 0.0.5
 This release improves the release workflow by running GitHub CLI commands through execa for a more reliable and streamlined process.
 
