@@ -154,7 +154,7 @@ Generate a release message in markdown format in the language '${this.config.lan
 
 We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
 
-**Full Changelog:** [See commits for ${newVersion}](https://github.com/leandrosilvaferreira/gitai-js/compare/${tag}...${newVersion})
+**Full Changelog:** [See commits for ${newVersion}](https://github.com/leandrosilvaferreira/gitai-js/compare/${tag}...v${newVersion})
 \`\`\`
 
 Commits:
