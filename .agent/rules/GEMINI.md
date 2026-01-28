@@ -145,6 +145,25 @@ When user's prompt is NOT in English:
 
 ---
 
+## TypeScript & Code Standards
+
+> **MANDATORY:** These rules apply to all TypeScript code in this project.
+
+### 🚫 Strict Type Safety
+1. **NO `any`**: The `any` type is strictly forbidden.
+    - **Why**: It defeats the purpose of TypeScript.
+    - **Alternative**: Use `unknown` if the type is truly not known yet, or specific limits like `Record<string, unknown>`.
+2. **`unknown` Usage**:
+    - You MUST use Type Guards (`typeof`, `instanceof`, custom predicates) immediately after receiving an `unknown`.
+    - Do NOT cast `as unknown as X` blindly.
+3. **`Record` Constraints**:
+    - **Avoid**: `Record<string, any>` (Forbidden)
+    - **Avoid**: `Record<string, unknown>` (Discouraged, prefer Interfaces)
+    - **Prefer**: Explicit interfaces or mapped types.
+4. **Strict Mode**: Ensure `tsconfig.json` always has `"strict": true`.
+
+---
+
 ## TIER 1: CODE RULES (When Writing Code)
 
 ### 📱 Project Type Routing

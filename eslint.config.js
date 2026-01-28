@@ -11,8 +11,9 @@ export default tseslint.config(
             sourceType: "module",
         },
         rules: {
-            "@typescript-eslint/no-explicit-any": "warn",
-            "@typescript-eslint/no-unused-vars": "warn",
+            "@typescript-eslint/no-explicit-any": "error",
+            "@typescript-eslint/no-unused-vars": "error",
+            "@typescript-eslint/unified-signatures": "error",
             "no-process-exit": "off"
         },
     }
