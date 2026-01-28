@@ -78,11 +78,8 @@ program
             const { stdout: diffOutput } = await runGitCommand(['diff'], projectPath);
             
             // Generate commit message
-            const baseMessage = baseMessageArg;
-            if (!baseMessage) {
-                logger.error("Base commit message argument is required.");
-                process.exit(1);
-            }
+            // Allow empty base message (will rely on git diffs)
+            const baseMessage = baseMessageArg || '';
 
             const commitMessage = await aiService.generateCommitMessage(diffOutput, projectLanguage, baseMessage);
             
