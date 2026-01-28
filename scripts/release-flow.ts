@@ -126,12 +126,48 @@ program
     // 5. Commit & Tag
     const tag = `v${newVersion}`;
     await runGitCommand(['add', 'package.json', 'CHANGELOG.md'], rootDir);
-    await runGitCommand(['commit', '-m', `chore: release ${tag}`], rootDir);
+    
+    // Create commit with multiline message (Title + Body)
+    // -m "Title" -m "Body" handles this in git CLI
+    await runGitCommand(['commit', '-m', `chore: release ${tag}`, '-m', releaseNotes], rootDir);
+    
     await runGitCommand(['tag', tag], rootDir);
-
     logger.success(`Created git tag ${tag}`);
 
-    // 6. Push
+    // 6. GitHub Release
+    logger.info('Checking for GitHub CLI (gh)...');
+    try {
+        await runGitCommand(['gh', '--version'], rootDir, false);
+        
+        const { createRelease } = await inquirer.prompt([{ 
+            type: 'confirm', 
+            name: 'createRelease', 
+            message: `Create GitHub Release for ${tag}?`, 
+            default: true 
+        }]);
+
+        if (createRelease) {
+             logger.ai('Creating GitHub Release...');
+             try {
+                // gh release create <tag> --title <title> --notes <notes>
+                // We use the tag as the title, or we could ask the user. Let's use releaseNotes for the content.
+                await runGitCommand([
+                    'gh', 'release', 'create', tag,
+                    '--title', `Release ${tag}`,
+                    '--notes', releaseNotes
+                ], rootDir);
+                logger.success(`✅ GitHub Release ${tag} created successfully!`);
+             } catch (error) {
+                 logger.error(`Failed to create GitHub Release: ${error}`);
+                 logger.warning('You may need to run "gh auth login" or create the release manually.');
+             }
+        }
+    } catch {
+        logger.warning('GitHub CLI (gh) not found or not working. Skipping GitHub Release creation.');
+        logger.info('Install gh with: brew install gh (or equivalent)');
+    }
+
+    // 7. Push
     const { push } = await inquirer.prompt([{ type: 'confirm', name: 'push', message: `Push branch and tag '${tag}' to origin?`, default: true }]);
     
     if (push) {
