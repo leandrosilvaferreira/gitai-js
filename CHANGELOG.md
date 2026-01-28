@@ -1,3 +1,21 @@
+# Release 0.0.5
+This release improves the release workflow by running GitHub CLI commands through execa for a more reliable and streamlined process.
+
+### New Features
+- N/A
+
+### Bug Fixes
+- N/A
+
+### Other Changes
+- Run GitHub CLI commands via execa in the release flow (1ec5599)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for 0.0.5](https://github.com/leandrosilvaferreira/gitai/compare/v0.0.4...0.0.5)
+
+---
+
 # Release 0.0.4
 This release improves the release workflow by enhancing the release script to better handle multiline commit messages and optionally create GitHub releases.
 
