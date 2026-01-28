@@ -1,3 +1,21 @@
+# Release 1.0.1
+This release streamlines setup by reusing existing configuration and only prompting for missing values, making onboarding faster and smoother!
+
+### New Features
+- Reuse existing config and prompt only for missing setup values (46798b9).
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.1](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.0...v1.0.1)
+
+---
+
 # Release 1.0.0
 This release improves the documentation with clearer prerequisites and updated recommendations for provider model selection, making it easier to get started and configure the project.
 
