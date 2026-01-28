@@ -1,3 +1,21 @@
+# Release 0.0.10
+A documentation-focused update that refreshes the README with clearer setup instructions and bilingual usage guidance.
+
+### New Features
+- N/A
+
+### Bug Fixes
+- N/A
+
+### Other Changes
+- Revamp README with bilingual usage and setup guide (c174fa8)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v0.0.10](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.9...v0.0.10)
+
+---
+
 # Release 0.0.9
 This release streamlines the project setup with a new package name, an improved build pipeline, and a small but important release notes fix.
 
