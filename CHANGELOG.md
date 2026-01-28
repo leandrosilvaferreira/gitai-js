@@ -1,3 +1,21 @@
+# Release 0.0.11
+This release streamlines the project by renaming the package to the new scoped name, improving clarity and distribution.
+
+### New Features
+- None.
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- Rename package to scoped @notyped/gitai (05656e9).
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v0.0.11](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.10...v0.0.11)
+
+---
+
 # Release 0.0.10
 A documentation-focused update that refreshes the README with clearer setup instructions and bilingual usage guidance.
 
