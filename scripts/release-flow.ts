@@ -164,39 +164,7 @@ program
     await runGitCommand(['tag', tag], rootDir);
     logger.success(`Created git tag ${tag}`);
 
-    // 6. GitHub Release
-    logger.info('Checking for GitHub CLI (gh)...');
-    try {
-        await execCommand('gh', ['--version'], rootDir, false);
-        
-        const { createRelease } = await inquirer.prompt([{ 
-            type: 'confirm', 
-            name: 'createRelease', 
-            message: `Create GitHub Release for ${tag}?`, 
-            default: true 
-        }]);
-
-        if (createRelease) {
-             logger.ai('Creating GitHub Release...');
-             try {
-                // gh release create <tag> --title <title> --notes <notes>
-                await execCommand('gh', [
-                    'release', 'create', tag,
-                    '--title', `Release ${tag}`,
-                    '--notes', releaseNotes
-                ], rootDir);
-                logger.success(`✅ GitHub Release ${tag} created successfully!`);
-             } catch (error) {
-                 logger.error(`Failed to create GitHub Release: ${error}`);
-                 logger.warning('You may need to run "gh auth login" or create the release manually.');
-             }
-        }
-    } catch {
-        logger.warning('GitHub CLI (gh) not found or not working. Skipping GitHub Release creation.');
-        logger.info('Install gh with: brew install gh (or equivalent)');
-    }
-
-    // 7. Push
+    // 6. Push
     const { push } = await inquirer.prompt([{ type: 'confirm', name: 'push', message: `Push branch and tag '${tag}' to origin?`, default: true }]);
     
     if (push) {
@@ -205,6 +173,42 @@ program
         logger.success('🚀 Release pushed! CI pipeline should trigger shortly.');
     } else {
         logger.info('Skipped push. Run "git push --tags" manually to trigger release.');
+    }
+
+    // 7. GitHub Release (Dependent on Push)
+    if (push) {
+        logger.info('Checking for GitHub CLI (gh)...');
+        try {
+            await execCommand('gh', ['--version'], rootDir, false);
+            
+            const { createRelease } = await inquirer.prompt([{ 
+                type: 'confirm', 
+                name: 'createRelease', 
+                message: `Create GitHub Release for ${tag}?`, 
+                default: true 
+            }]);
+
+            if (createRelease) {
+                logger.ai('Creating GitHub Release...');
+                try {
+                    // gh release create <tag> --title <title> --notes <notes>
+                    await execCommand('gh', [
+                        'release', 'create', tag,
+                        '--title', `Release ${tag}`,
+                        '--notes', releaseNotes
+                    ], rootDir);
+                    logger.success(`✅ GitHub Release ${tag} created successfully!`);
+                } catch (error) {
+                    logger.error(`Failed to create GitHub Release: ${error}`);
+                    logger.warning('You may need to run "gh auth login" or create the release manually.');
+                }
+            }
+        } catch {
+            logger.warning('GitHub CLI (gh) not found or not working. Skipping GitHub Release creation.');
+            logger.info('Install gh with: brew install gh (or equivalent)');
+        }
+    } else {
+        logger.warning('Skipped GitHub Release creation because changes were not pushed.');
     }
 
   });
