@@ -1,3 +1,21 @@
+# Release 0.0.9
+This release streamlines the project setup with a new package name, an improved build pipeline, and a small but important release notes fix.
+
+### New Features
+- Switch build pipeline to tsup and centralize app version metadata (ec14994)
+
+### Bug Fixes
+- Correct release notes changelog link text (82b4679)
+
+### Other Changes
+- Rename package to gitai-js (2223aee)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v0.0.9](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.8...v0.0.9)
+
+---
+
 # Release 0.0.8
 A small but important update improving the accuracy of the release documentation and changelog navigation.
 
