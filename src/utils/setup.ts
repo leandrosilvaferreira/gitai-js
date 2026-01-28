@@ -1,7 +1,7 @@
 import chalk from 'chalk';
 import { execa } from 'execa';
 import inquirer from 'inquirer';
-import { AppConfig, CONFIG_PATH, saveConfig } from './config.js';
+import { AppConfig, CONFIG_PATH, checkConfigExists, loadConfig, saveConfig } from './config.js';
 
 import { version } from '../version.js';
 
@@ -22,11 +22,33 @@ export async function runSetup(): Promise<AppConfig> {
     
     console.log(chalk.cyan('\n⚙️  Global Configuration (saved to ' + CONFIG_PATH + ')\n'));
 
-    // 2. Prompts
-    // Inquirer v12+ types might need check, but standard array syntax usually persists or we use separate imports.
-    // Assuming standard prompt syntax works for this version as it is the default export typically.
-    
-    const answers = await inquirer.prompt([
+    // 2. Load Existing Configuration
+    let currentConfig: Partial<AppConfig> = {};
+    if (checkConfigExists()) {
+        try {
+            currentConfig = loadConfig();
+            console.log(chalk.green(`✅ Found existing configuration at ${CONFIG_PATH}`));
+        } catch {
+            console.log(chalk.yellow('⚠️  Could not load existing configuration, starting fresh.'));
+        }
+    }
+
+    const requiredKeys: (keyof AppConfig)[] = ['LANGUAGE', 'PROVIDER', 'API_KEY', 'MODEL'];
+    const missingKeys = requiredKeys.filter(key => !currentConfig[key]);
+
+    if (missingKeys.length === 0) {
+        console.log(chalk.green('✅ Configuration is complete and valid!'));
+        console.log(chalk.dim('You are all set. Running GitAI...\n'));
+        return currentConfig as AppConfig;
+    }
+
+    if (Object.keys(currentConfig).length > 0) {
+        console.log(chalk.yellow(`⚠️  Missing configuration for: ${missingKeys.join(', ')}`));
+        console.log(chalk.dim('Please provide the missing details.\n'));
+    }
+
+    // 3. Prompts
+    const prompts = [
         {
             type: 'list',
             name: 'LANGUAGE',
@@ -42,7 +64,8 @@ export async function runSetup(): Promise<AppConfig> {
                 { name: 'Japanese', value: 'ja' },
                 { name: 'Korean', value: 'ko' }
             ],
-            default: 'en'
+            default: 'en',
+            when: () => !currentConfig.LANGUAGE
         },
         {
             type: 'list',
@@ -53,14 +76,16 @@ export async function runSetup(): Promise<AppConfig> {
                 { name: 'Anthropic', value: 'anthropic' },
                 { name: 'Groq', value: 'groq' }
             ],
-            default: 'openai'
+            default: 'openai',
+            when: () => !currentConfig.PROVIDER
         },
         {
             type: 'password',
             name: 'API_KEY',
             message: 'Enter your API Key:',
             mask: '*',
-            validate: (input: string) => input.length > 0 ? true : 'API Key is required'
+            validate: (input: string) => input.length > 0 ? true : 'API Key is required',
+            when: () => !currentConfig.API_KEY
         },
         {
             type: 'input',
@@ -68,19 +93,24 @@ export async function runSetup(): Promise<AppConfig> {
             message: 'Model ID (e.g., gpt-4o, claude-3-5-sonnet):',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             default: (answers: any) => {
-                if (answers.PROVIDER === 'openai') return 'gpt-4o';
-                if (answers.PROVIDER === 'anthropic') return 'claude-3-5-sonnet-20240620';
-                if (answers.PROVIDER === 'groq') return 'llama3-70b-8192';
+                const provider = answers.PROVIDER || currentConfig.PROVIDER;
+                if (provider === 'openai') return 'gpt-4o';
+                if (provider === 'anthropic') return 'claude-3-5-sonnet-20240620';
+                if (provider === 'groq') return 'llama3-70b-8192';
                 return 'gpt-4o';
-            }
+            },
+             when: () => !currentConfig.MODEL
         }
-    ]);
+    ];
+    
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const answers = await inquirer.prompt(prompts as any);
 
     const config: AppConfig = {
-        LANGUAGE: answers.LANGUAGE,
-        PROVIDER: answers.PROVIDER,
-        API_KEY: answers.API_KEY,
-        MODEL: answers.MODEL
+        LANGUAGE: answers.LANGUAGE || currentConfig.LANGUAGE!,
+        PROVIDER: answers.PROVIDER || currentConfig.PROVIDER!,
+        API_KEY: answers.API_KEY || currentConfig.API_KEY!,
+        MODEL: answers.MODEL || currentConfig.MODEL!
     };
 
     saveConfig(config);
