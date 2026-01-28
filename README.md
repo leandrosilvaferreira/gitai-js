@@ -32,7 +32,7 @@ Click the image below to watch the video tutorial about Gitai:
 Gitai can be installed globally via npm, making it available across all your projects:
 
 ```bash
-npm install -g gitai
+npm install -g @notyped/gitai
 ```
 
 After installation, the `gitai` command will be available in your terminal.
@@ -148,6 +148,12 @@ For example, if you have the terminal open in your project's root and the change
 gitai . 'Added new feature'
 ```
 
+or just:
+
+```bash
+gitai . ''
+```
+
 If you wish to analyze only a specific folder or a project in another directory, for example, if you made a change in your project located at `/Users/username/MyProject`, you can run Gitai with the following command:
 
 ```bash
@@ -158,6 +164,12 @@ To automatically generate the commit and push it, you can add the `--push` flag 
 
 ```bash
 gitai . 'Added new feature' --push
+```
+
+or just:
+
+```bash
+gitai . '' --push
 ```
 
 ## 🚀 Generating Release Notes
@@ -293,7 +305,7 @@ Clique na imagem abaixo para assistir ao tutorial em vídeo sobre o Gitai:
 O Gitai pode ser instalado globalmente via npm, tornando-o disponível em todos os seus projetos:
 
 ```bash
-npm install -g gitai
+npm install -g @notyped/gitai
 ```
 
 Após a instalação, o comando `gitai` estará disponível no seu terminal.
@@ -409,6 +421,12 @@ Se você estiver com o terminal aberto na raiz do seu projeto e a mudança foi p
 gitai . 'Adicionada nova funcionalidade'
 ```
 
+ou somente:
+
+```bash
+gitai . ''
+```
+
 Se você deseja analisar somente uma pasta específica ou um projeto em outra pasta, por exemplo, se você fez uma alteração no seu projeto localizado em `/Users/username/MeuProjeto`, você pode executar o Gitai com o seguinte comando:
 
 ```bash
@@ -419,6 +437,12 @@ Para gerar o commit e fazer push de forma automática, você pode adicionar a fl
 
 ```bash
 gitai . 'Adicionada nova funcionalidade' --push
+```
+
+ou somente:
+
+```bash
+gitai . '' --push
 ```
 
 ## 🚀 Gerando Notas de Lançamento (Release Notes)
