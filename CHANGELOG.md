@@ -1,3 +1,21 @@
+# Release 0.0.7
+This release improves the release process by fixing the GitHub compare link in the release message template.
+
+### New Features
+- None.
+
+### Bug Fixes
+- Correct GitHub compare link in release message template (09dce2d).
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for 0.0.7](https://github.com/leandrosilvaferreira/gitai-js/compare/v0.0.6...0.0.7)
+
+---
+
 # Release 0.0.6
 This release improves the reliability of the release workflow by ensuring GitHub releases are created only after the tag has been successfully pushed.
 
