@@ -1,3 +1,21 @@
+# Release 1.0.4
+This release improves the CLI experience by notifying users when a new version is available.
+
+### New Features
+- Notify users when a new CLI version is available (88e549c).
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.4](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.3...v1.0.4)
+
+---
+
 # Release 1.0.3
 This release improves the documentation with updated instructions and new guidance for using Claude Code.
 
