@@ -1,3 +1,21 @@
+# Release 1.0.3
+This release improves the documentation with updated instructions and new guidance for using Claude Code.
+
+### New Features
+- N/A
+
+### Bug Fixes
+- N/A
+
+### Other Changes
+- Add Claude Code guidance and update instructions (2457668)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.3](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.2...v1.0.3)
+
+---
+
 # Release 1.0.2
 This release enhances commit message generation by ensuring newly added files are included in the generated git diff, improving accuracy and completeness.
 
