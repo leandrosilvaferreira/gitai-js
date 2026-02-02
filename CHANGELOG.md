@@ -1,3 +1,23 @@
+# Release 1.0.6
+This release refreshes the setup experience with updated default model selections for Groq and OpenAI, keeping configuration current and ready to use.
+
+### New Features
+- N/A
+
+### Bug Fixes
+- N/A
+
+### Other Changes
+- Update Groq default model in setup prompt (17b90aa, 021376c)
+- Update Groq default model ID in setup prompt (8511a10)
+- Update setup prompt and default OpenAI model to gpt-5.2 (9c2c1e2)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.6](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.5...v1.0.6)
+
+---
+
 # Release 1.0.5
 This release enhances the first-run experience with a smoother setup flow and helpful usage examples to get you productive faster!
 
