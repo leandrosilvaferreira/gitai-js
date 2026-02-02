@@ -1,3 +1,21 @@
+# Release 1.0.2
+This release enhances commit message generation by ensuring newly added files are included in the generated git diff, improving accuracy and completeness.
+
+### New Features
+- Include new files in generated git diff for commit messages (833bce2)
+
+### Bug Fixes
+- No bug fixes in this release.
+
+### Other Changes
+- No other changes in this release.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.2](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.1...v1.0.2)
+
+---
+
 # Release 1.0.1
 This release streamlines setup by reusing existing configuration and only prompting for missing values, making onboarding faster and smoother!
 
