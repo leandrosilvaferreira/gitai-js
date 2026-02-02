@@ -5,7 +5,7 @@ import path from 'path';
 
 import { AIService } from './services/ai.js';
 import { checkConfigExists, loadConfig, validateNodeVersion } from './utils/config.js';
-import { commitChanges, hasUncommittedChanges, isBranchAhead, performGitPull, runGitCommand } from './utils/git.js';
+import { commitChanges, getDiffWithNewFiles, hasUncommittedChanges, isBranchAhead, performGitPull, runGitCommand } from './utils/git.js';
 import { detectProjectLanguage, printDetectedLanguage } from './utils/language.js';
 import { logger } from './utils/logger.js';
 import { runSetup } from './utils/setup.js';
@@ -79,12 +79,12 @@ program
         // 2. Check for uncommitted changes
         if (await hasUncommittedChanges(projectPath)) {
             logger.warning('Uncommitted local changes detected.');
-            
+
             const projectLanguage = await detectProjectLanguage(projectPath);
             printDetectedLanguage(projectLanguage);
-            
-            const { stdout: diffOutput } = await runGitCommand(['diff'], projectPath);
-            
+
+            const diffOutput = await getDiffWithNewFiles(projectPath);
+
             // Generate commit message
             // Allow empty base message (will rely on git diffs)
             const baseMessage = baseMessageArg || '';
@@ -111,12 +111,12 @@ program
         // 4. Check for conflicts/changes after pull
         if (await hasUncommittedChanges(projectPath)) {
              logger.warning('Conflicts or uncommitted changes detected after pull.');
-             
+
              const projectLanguage = await detectProjectLanguage(projectPath);
              printDetectedLanguage(projectLanguage);
-             
-             const { stdout: diffOutput } = await runGitCommand(['diff'], projectPath);
-             
+
+             const diffOutput = await getDiffWithNewFiles(projectPath);
+
              const commitMessage = await aiService.generateCommitMessage(diffOutput, projectLanguage, "Resolving conflicts after git pull");
              logger.commit(commitMessage);
              

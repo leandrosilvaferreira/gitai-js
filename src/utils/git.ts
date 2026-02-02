@@ -61,11 +61,11 @@ export async function performGitPull(cwd: string): Promise<boolean> {
 
 export async function commitChanges(commitMessage: string, cwd: string): Promise<void> {
     await runGitCommand(['add', '.'], cwd);
-    
+
     // Write commit message to temp file to handle special characters correctly
     const tempDir = os.tmpdir();
     const tempFilePath = path.join(tempDir, `gitai_commit_${Date.now()}.txt`);
-    
+
     try {
         await fs.writeFile(tempFilePath, commitMessage, 'utf-8');
         await runGitCommand(['commit', '-F', tempFilePath], cwd);
@@ -76,4 +76,17 @@ export async function commitChanges(commitMessage: string, cwd: string): Promise
             // Ignore error if cleanup fails
         }
     }
+}
+
+export async function getDiffWithNewFiles(cwd: string): Promise<string> {
+    // Add all changes (including new files) to staging area
+    await runGitCommand(['add', '.'], cwd);
+
+    // Get diff of staged changes (includes new files with full content)
+    // --cached: show staged changes
+    // --ignore-all-space: ignore whitespace-only changes
+    // Git automatically handles binary files by showing "Binary files differ"
+    const { stdout } = await runGitCommand(['diff', '--cached', '--ignore-all-space'], cwd);
+
+    return stdout;
 }
