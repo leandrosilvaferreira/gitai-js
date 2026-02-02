@@ -44,6 +44,14 @@ npm install -g @notyped/gitai
 
 After installation, the `gitai` command will be available in your terminal.
 
+## 🔄 Updating Gitai
+
+To update `gitai` to the latest version, run the following command. This ensures you get the newest features and fixes, bypassing local caches.
+
+```bash
+npm install -g @notyped/gitai@latest
+```
+
 ## 🤖 Choosing the AI Model
 
 Gitai supports three AI providers for generating commit messages: `OpenAI`, `Groq`, and `Anthropic`.
@@ -313,6 +321,14 @@ npm install -g @notyped/gitai
 ```
 
 Após a instalação, o comando `gitai` estará disponível no seu terminal.
+
+## 🔄 Atualizando o Gitai
+
+Para atualizar o `gitai` para a versão mais recente, execute o comando abaixo. Isso garante que você receba os recursos e correções mais novos, ignorando caches locais.
+
+```bash
+npm install -g @notyped/gitai@latest
+```
 
 ## 🤖 Escolhendo o Modelo de IA
 
