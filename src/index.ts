@@ -10,7 +10,11 @@ import { detectProjectLanguage, printDetectedLanguage } from './utils/language.j
 import { logger } from './utils/logger.js';
 import { runSetup } from './utils/setup.js';
 
+import updateNotifier from 'update-notifier';
 import { engines, name, version } from './version.js';
+
+// Check for updates
+updateNotifier({ pkg: { name: '@notyped/gitai', version } }).notify();
 
 // 0. Validate Node Version
 if (!validateNodeVersion()) {
