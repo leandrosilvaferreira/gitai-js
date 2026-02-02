@@ -38,7 +38,7 @@ export async function runSetup(): Promise<AppConfig> {
 
     if (missingKeys.length === 0) {
         console.log(chalk.green('✅ Configuration is complete and valid!'));
-        console.log(chalk.dim('You are all set. Running GitAI...\n'));
+
         return currentConfig as AppConfig;
     }
 
@@ -116,7 +116,7 @@ export async function runSetup(): Promise<AppConfig> {
     saveConfig(config);
 
     console.log(chalk.green('\n✨ Configuration saved successfully! ✨'));
-    console.log(chalk.dim('You are all set. Running GitAI...\n'));
+
 
     return config;
 }

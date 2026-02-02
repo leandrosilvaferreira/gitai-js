@@ -38,19 +38,35 @@ program.on('--help', () => {
     console.log(chalk.dim('  AI-powered git commit assistant'));
     console.log(chalk.cyan('━'.repeat(50)));
     console.log('');
+    console.log(chalk.yellow('  Examples:'));
+    console.log('');
+    console.log(chalk.green('    $ gitai'));
+    console.log(chalk.dim('    Run in current directory'));
+    console.log('');
+    console.log(chalk.green('    $ gitai . "feat: initial commit"'));
+    console.log(chalk.dim('    Run with base message'));
+    console.log('');
+    console.log(chalk.green('    $ gitai . --push'));
+    console.log(chalk.dim('    Run and push changes (base message is optional)'));
+    console.log('');
+    console.log(chalk.green('    $ gitai . "feat: wip" --push'));
+    console.log(chalk.dim('    Run with base message and push'));
+    console.log('');
 });
 
 program
     .argument('[projectPath]', 'The path to the project', '.')
-    .argument('[baseMessage]', 'The base commit message')
+    .argument('[baseMessage]', 'The base commit message (Optional)')
     .option('-p, --push', 'Whether to push after committing', false)
     .action(async (projectPathArg, baseMessageArg, options) => {
         
         // 1. Configuration Check (Global Only)
         let config;
+        let isFirstRun = false;
         try {
             if (!checkConfigExists()) {
                 config = await runSetup();
+                isFirstRun = true;
             } else {
                 config = loadConfig();
             }
@@ -58,6 +74,29 @@ program
             const errorMessage = error instanceof Error ? error.message : String(error);
             logger.error(`Failed to load configuration: ${errorMessage}`);
             process.exit(1);
+        }
+
+        if (isFirstRun) {
+            console.log('');
+            console.log(chalk.green('✅ GitAI installed and configured successfully!'));
+            console.log('');
+            console.log('Now you can run it inside any git repository.');
+            console.log('');
+            console.log(chalk.yellow('Examples:'));
+            console.log('');
+            console.log(chalk.green('    $ gitai'));
+            console.log(chalk.dim('    Run in current directory'));
+            console.log('');
+            console.log(chalk.green('    $ gitai . "feat: initial commit"'));
+            console.log(chalk.dim('    Run with base message'));
+            console.log('');
+            console.log(chalk.green('    $ gitai . --push'));
+            console.log(chalk.dim('    Run and push changes (base message is optional)'));
+            console.log('');
+            console.log(chalk.green('    $ gitai . "feat: wip" --push'));
+            console.log(chalk.dim('    Run with base message and push'));
+            console.log('');
+            process.exit(0);
         }
 
         logger.header(`Gitai v${version}`);
