@@ -1,3 +1,21 @@
+# Release 1.0.5
+This release enhances the first-run experience with a smoother setup flow and helpful usage examples to get you productive faster!
+
+### New Features
+- Improve first-run setup flow with usage examples (c080723).
+
+### Bug Fixes
+- No bug fixes in this release.
+
+### Other Changes
+- No other changes in this release.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.5](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.4...v1.0.5)
+
+---
+
 # Release 1.0.4
 This release improves the CLI experience by notifying users when a new version is available.
 

@@ -1,6 +1,6 @@
 {
   "name": "@notyped/gitai",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "AI-powered git commit assistant and release note generator",
   "main": "dist/index.js",
   "bin": {
