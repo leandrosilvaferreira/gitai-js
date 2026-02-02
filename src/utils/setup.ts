@@ -90,13 +90,13 @@ export async function runSetup(): Promise<AppConfig> {
         {
             type: 'input',
             name: 'MODEL',
-            message: 'Model ID (e.g., gpt-5.2, claude-3-5-sonnet, llama-3.3-70b-versatile):',
+            message: 'Model ID (e.g., gpt-5.2, claude-3-5-sonnet, llama3-70b-8192):',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             default: (answers: any) => {
                 const provider = answers.PROVIDER || currentConfig.PROVIDER;
                 if (provider === 'openai') return 'gpt-5.2';
                 if (provider === 'anthropic') return 'claude-3-5-sonnet-20240620';
-                if (provider === 'groq') return 'llama-3.3-70b-versatile';
+                if (provider === 'groq') return 'llama3-70b-8192';
                 return 'gpt-5.2';
             },
              when: () => !currentConfig.MODEL
