@@ -1,3 +1,21 @@
+# Release 1.0.7
+This release enhances commit message generation by now including deleted files for more complete and accurate summaries!
+
+### New Features
+- Include deleted files in commit message generation (3f159c8).
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.7](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.6...v1.0.7)
+
+---
+
 # Release 1.0.6
 This release refreshes the setup experience with updated default model selections for Groq and OpenAI, keeping configuration current and ready to use.
 
