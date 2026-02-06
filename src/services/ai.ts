@@ -74,7 +74,16 @@ If the instructions are not followed correctly, the result will not be accepted.
 `.trim();
     }
 
-    private getCommitUserPrompt(diffOutput: string, projectLanguage: string, baseMessage: string): string {
+    private getCommitUserPrompt(diffOutput: string, deletedFiles: string[], projectLanguage: string, baseMessage: string): string {
+        let deletedFilesSection = '';
+        if (deletedFiles && deletedFiles.length > 0) {
+            const filesToList = deletedFiles.slice(0, 30);
+            deletedFilesSection = '\n\nDeleted Files:\n' + filesToList.map(f => `- ${f}`).join('\n');
+            if (deletedFiles.length > 30) {
+                deletedFilesSection += `\n...and ${deletedFiles.length - 30} more deleted files.`;
+            }
+        }
+
         return `
 Based on the information provided below, create a commit message following the Conventional Commits standard.
 
@@ -92,7 +101,7 @@ Below are the detailed changes (including modified files and what was added, cha
 
 \`\`\`
 ${diffOutput}
-\`\`\`
+\`\`\`${deletedFilesSection}
 
 Based on the above information, improve the basic description to create an objective commit message.
 Mandatory rules:
@@ -116,9 +125,9 @@ Line 3+: [detailed explanation of changes, reasons, and impact]
 `.trim();
     }
 
-    async generateCommitMessage(diffOutput: string, projectLanguage: string, baseMessage: string): Promise<string> {
+    async generateCommitMessage(diffOutput: string, deletedFiles: string[], projectLanguage: string, baseMessage: string): Promise<string> {
         const systemPrompt = this.getCommitSystemPrompt();
-        const userPrompt = this.getCommitUserPrompt(diffOutput, projectLanguage, baseMessage);
+        const userPrompt = this.getCommitUserPrompt(diffOutput, deletedFiles, projectLanguage, baseMessage);
         
         const commitMessage = await this.callApi(systemPrompt, userPrompt);
         const signature = "\n\n🤖 Commit generated with [GitaiJS](https://github.com/leandrosilvaferreira/gitai-js)";

@@ -85,8 +85,14 @@ export async function getDiffWithNewFiles(cwd: string): Promise<string> {
     // Get diff of staged changes (includes new files with full content)
     // --cached: show staged changes
     // --ignore-all-space: ignore whitespace-only changes
+    // --diff-filter=d: exclude deleted files from the diff content
     // Git automatically handles binary files by showing "Binary files differ"
-    const { stdout } = await runGitCommand(['diff', '--cached', '--ignore-all-space'], cwd);
+    const { stdout } = await runGitCommand(['diff', '--cached', '--ignore-all-space', '--diff-filter=d'], cwd);
 
     return stdout;
+}
+
+export async function getDeletedFiles(cwd: string): Promise<string[]> {
+    const { stdout } = await runGitCommand(['diff', '--cached', '--diff-filter=D', '--name-only'], cwd);
+    return stdout.split('\n').filter(line => line.trim() !== '');
 }
