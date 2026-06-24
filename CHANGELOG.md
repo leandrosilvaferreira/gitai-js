@@ -1,3 +1,23 @@
+# Release 1.0.10
+This release modernizes the CI pipeline, upgrades to Node 24, and streamlines maintenance and permissions for a smoother development and release workflow.
+
+### New Features
+- Create GitHub Releases automatically from CI on tag push (2b68daf).
+
+### Bug Fixes
+- Drop stale Node 24 “Premature close” memory issue (ee735ac).
+
+### Other Changes
+- Upgrade to Node 24 and bump GitHub Actions to the latest versions (9cb8a07).
+- Adjust Claude permissions configuration (76fb73d).
+- Remove antigravity harness (cebd7ec).
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.10](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.9...v1.0.10)
+
+---
+
 # Release 1.0.9
 
 This release makes the AI providers work on modern Node (20+) by upgrading the OpenAI, Anthropic, and Groq SDKs, routes gpt-5.x/o1/o3 through the Responses API, and hardens the release flow with a test + build gate.
