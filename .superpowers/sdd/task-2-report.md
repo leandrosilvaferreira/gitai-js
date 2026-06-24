@@ -58,3 +58,34 @@ The hook is ready for use. When test files are edited during development:
 - Test results will display in the terminal
 - Failures won't block other Claude operations
 - Claude can see test feedback inline
+
+## Security Fix
+
+**Vulnerability:** Command injection in `run-related-test.mjs`.
+
+Original code interpolated untrusted `file` (from `tool_input`) directly into a shell string:
+
+```js
+execSync(`node --import tsx --test "${file}"`, { ... })
+```
+
+An attacker could inject shell commands via crafted file paths like `"; rm -rf /; echo "`.
+
+**Fix Applied (Commit 0ae8b71):**
+
+1. Changed import: `execFileSync` instead of `execSync`
+2. Replaced shell-based call with array argument format (never goes through shell):
+   ```js
+   execFileSync(process.execPath, ['--import', 'tsx', '--test', file], {
+     cwd: projectDir,
+     stdio: 'inherit',
+     timeout: 60000,
+   });
+   ```
+3. Used `process.execPath` directly (respects nvm/fnm already)
+4. Removed unsafe `binDir` and `env` PATH injection block
+5. Removed unnecessary `path` import
+
+**Verification:** `echo '{"tool_input":{"file_path":"src/index.ts"}}' | node .claude/hooks/run-related-test.mjs` exits cleanly with code 0.
+
+**Impact:** Arguments are never interpolated through shell. Even malicious file paths cannot execute arbitrary commands.
