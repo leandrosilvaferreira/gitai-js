@@ -4,6 +4,7 @@
  * Only triggers for *.test.ts files. Never blocks. Advisory output only.
  */
 import fs from 'node:fs';
+import { resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 
 let event = {};
@@ -20,9 +21,10 @@ if (!file.endsWith('.test.ts')) {
 }
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
+const tsxBin = resolve(projectDir, 'node_modules', '.bin', 'tsx');
 
 try {
-  execFileSync(process.execPath, ['--import', 'tsx', '--test', file], {
+  execFileSync(tsxBin, ['--test', file], {
     cwd: projectDir,
     stdio: 'inherit',
     timeout: 60000,
