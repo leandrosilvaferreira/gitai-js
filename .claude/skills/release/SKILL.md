@@ -54,7 +54,7 @@ Before invoking `npm run release`, verify all of these pass:
 
 6. **Tag doesn't already exist**
    ```bash
-   git tag -l v$(node -p "require('./package.json').version")
+   git tag -l "v$(npm pkg get version | tr -d '"')"
    ```
    Output must be empty. If the tag exists, the version has already been released.
 
