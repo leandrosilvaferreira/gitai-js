@@ -20,13 +20,13 @@ Before invoking `npm run release`, verify all of these pass:
 
    Output must be empty. If there are changes, commit them first.
 
-2. **On correct branch (main)**
+2. **On correct branch (main or master)**
 
    ```bash
    git branch --show-current
    ```
 
-   Must output `main`. Releases must be from the main branch.
+   Must output `main` or `master`. Releases from other branches will prompt for confirmation.
 
 3. **Tests pass**
 
