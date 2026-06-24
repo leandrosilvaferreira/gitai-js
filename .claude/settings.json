@@ -54,6 +54,12 @@
             "command": "node",
             "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"],
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node",
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/block-lockfile.mjs"],
+            "timeout": 10
           }
         ]
       },
