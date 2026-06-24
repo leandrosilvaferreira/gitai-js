@@ -8,16 +8,36 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       id-token: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
+      - run: npm test
       - run: npm run build
-      - run: npm publish --provenance --access public
+      # Capture the exact tarball name (avoids a ./*.tgz glob matching stray files).
+      - name: Pack artifact
+        run: echo "TARBALL=$(npm pack --json | jq -r '.[0].filename')" >> "$GITHUB_ENV"
+      - name: Publish to npm
+        run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # npm publish runs first because it is irreversible; the GitHub Release is
+      # repeatable. If this step fails after a successful publish, recover with:
+      #   gh release create <tag> --title "Release <tag>" --notes-file notes.md <tarball>
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          NOTES=$(git for-each-ref "refs/tags/${GITHUB_REF_NAME}" --format='%(contents)')
+          if [ -z "$NOTES" ]; then NOTES="Release ${GITHUB_REF_NAME}"; fi
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "Release ${GITHUB_REF_NAME}" \
+            --notes "$NOTES" \
+            "$TARBALL"

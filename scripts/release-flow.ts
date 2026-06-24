@@ -1,6 +1,5 @@
 import { Command } from 'commander';
 import dotenv from 'dotenv';
-import { execa } from 'execa';
 import fs from 'fs/promises';
 import inquirer from 'inquirer';
 import { createRequire } from 'module';
@@ -15,40 +14,6 @@ const pkg = require('../package.json');
 
 dotenv.config();
 
-// Helper to run arbitrary commands (like gh) without forcing "git" prefix
-async function execCommand(
-  command: string,
-  args: string[],
-  cwd: string = process.cwd(),
-  exitOnError: boolean = true
-): Promise<{ stdout: string; stderr: string; exitCode: number }> {
-  try {
-    const result = await execa(command, args, { cwd, reject: false });
-
-    if (result.exitCode !== 0) {
-      if (exitOnError) {
-        logger.error(`Error executing command: ${command} ${args.join(' ')}`);
-        logger.error(`Standard output: ${result.stdout}`);
-        logger.error(`Error output: ${result.stderr}`);
-        process.exit(1);
-      }
-    }
-    return {
-      stdout: result.stdout.trim(),
-      stderr: result.stderr.trim(),
-      exitCode: result.exitCode ?? 1,
-    };
-  } catch (error: unknown) {
-    if (exitOnError) {
-      const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error(`Unexpected error executing command: ${errorMessage}`);
-      process.exit(1);
-    }
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    return { stdout: '', stderr: errorMessage, exitCode: 1 };
-  }
-}
-
 const program = new Command();
 
 program
@@ -60,7 +25,8 @@ program
     // 1. Pre-checks
     const rootDir = process.cwd();
     if (await hasUncommittedChanges(rootDir)) {
-      logger.error('Git working directory is not clean. Please commit or stash changes.');
+      logger.error('Git working directory is not clean. Commit your work before releasing.');
+      logger.info('Release notes are generated from committed history (last tag..HEAD).');
       process.exit(1);
     }
 
@@ -177,7 +143,16 @@ export const engines = {
     let currentChangelog = '';
     try {
       currentChangelog = await fs.readFile(changelogPath, 'utf-8');
-    } catch (e) {}
+    } catch (error) {
+      // A first release has no CHANGELOG yet; tolerate only "file not found".
+      const isMissingFile = error instanceof Error && 'code' in error && error.code === 'ENOENT';
+      if (!isMissingFile) {
+        logger.error(
+          `Failed to read CHANGELOG.md: ${error instanceof Error ? error.message : String(error)}`
+        );
+        process.exit(1);
+      }
+    }
 
     const newChangelog = `${releaseNotes}\n\n---\n\n${currentChangelog}`;
     await fs.writeFile(changelogPath, newChangelog, 'utf-8');
@@ -186,16 +161,18 @@ export const engines = {
 
     // 5. Commit & Tag
     const tag = `v${newVersion}`;
+    // The annotated tag carries these notes so CI can publish them to the GitHub
+    // Release without needing an AI API key in the pipeline. Reuse the same
+    // message for the commit body so both stay in sync (and never empty).
+    const tagMessage = releaseNotes.trim() || `Release ${tag}`;
     await runGitCommand(['add', 'package.json', 'src/version.ts', 'CHANGELOG.md'], rootDir);
+    await runGitCommand(['commit', '-m', `chore: release ${tag}`, '-m', tagMessage], rootDir);
 
-    // Create commit with multiline message (Title + Body)
-    // -m "Title" -m "Body" handles this in git CLI
-    await runGitCommand(['commit', '-m', `chore: release ${tag}`, '-m', releaseNotes], rootDir);
+    await runGitCommand(['tag', '-a', tag, '-m', tagMessage], rootDir);
+    logger.success(`Created annotated git tag ${tag}`);
 
-    await runGitCommand(['tag', tag], rootDir);
-    logger.success(`Created git tag ${tag}`);
-
-    // 6. Push
+    // 6. Push — pushing the tag triggers CI, which publishes to npm AND creates
+    // the GitHub Release (notes from the tag + built artifact). No local `gh`.
     const { push } = await inquirer.prompt([
       {
         type: 'confirm',
@@ -207,50 +184,13 @@ export const engines = {
 
     if (push) {
       logger.git('Pushing to origin...');
-      await runGitCommand(['push', 'origin', currentBranch, '--tags'], rootDir);
-      logger.success('🚀 Release pushed! CI pipeline should trigger shortly.');
+      await runGitCommand(['push', 'origin', currentBranch], rootDir);
+      await runGitCommand(['push', 'origin', tag], rootDir);
+      logger.success('🚀 Release pushed! CI will publish to npm and create the GitHub Release.');
     } else {
-      logger.info('Skipped push. Run "git push --tags" manually to trigger release.');
-    }
-
-    // 7. GitHub Release (Dependent on Push)
-    if (push) {
-      logger.info('Checking for GitHub CLI (gh)...');
-      try {
-        await execCommand('gh', ['--version'], rootDir, false);
-
-        const { createRelease } = await inquirer.prompt([
-          {
-            type: 'confirm',
-            name: 'createRelease',
-            message: `Create GitHub Release for ${tag}?`,
-            default: true,
-          },
-        ]);
-
-        if (createRelease) {
-          logger.ai('Creating GitHub Release...');
-          try {
-            // gh release create <tag> --title <title> --notes <notes>
-            await execCommand(
-              'gh',
-              ['release', 'create', tag, '--title', `Release ${tag}`, '--notes', releaseNotes],
-              rootDir
-            );
-            logger.success(`✅ GitHub Release ${tag} created successfully!`);
-          } catch (error) {
-            logger.error(`Failed to create GitHub Release: ${error}`);
-            logger.warning('You may need to run "gh auth login" or create the release manually.');
-          }
-        }
-      } catch {
-        logger.warning(
-          'GitHub CLI (gh) not found or not working. Skipping GitHub Release creation.'
-        );
-        logger.info('Install gh with: brew install gh (or equivalent)');
-      }
-    } else {
-      logger.warning('Skipped GitHub Release creation because changes were not pushed.');
+      logger.info(
+        `Skipped push. Run "git push origin ${currentBranch} && git push origin ${tag}" to trigger the release.`
+      );
     }
   });
 
