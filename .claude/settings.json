@@ -8,6 +8,7 @@
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
       "Bash(git diff:*)",
       "Bash(git status:*)",
@@ -34,9 +35,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-main-branch.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-main-branch.mjs"],
             "timeout": 10
           }
         ]
@@ -47,17 +46,13 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.mjs"],
             "timeout": 10
           },
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"],
             "timeout": 10
           }
         ]
@@ -68,9 +63,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk-hook.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk-hook.mjs"],
             "timeout": 15
           }
         ]
@@ -101,25 +94,19 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs"],
             "timeout": 60
           },
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/set-files-changed.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/set-files-changed.mjs"],
             "timeout": 30
           },
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/sql-idempotent-review.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/sql-idempotent-review.mjs"],
             "timeout": 10
           }
         ]
@@ -131,9 +118,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-deps-on-start.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/check-deps-on-start.mjs"],
             "timeout": 30
           }
         ]
@@ -143,9 +128,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/caveman/caveman-activate.js"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/caveman/caveman-activate.js"],
             "timeout": 10
           }
         ]
@@ -155,9 +138,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/ponytail/ponytail-activate.js"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ponytail/ponytail-activate.js"],
             "timeout": 10
           }
         ]
@@ -169,9 +150,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-subagent-ctx.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-subagent-ctx.mjs"],
             "timeout": 10
           }
         ]
@@ -183,25 +162,19 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.mjs"],
             "timeout": 300
           },
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-stop.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-stop.mjs"],
             "timeout": 30
           },
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/large-file-warning.mjs"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/large-file-warning.mjs"],
             "timeout": 30
           }
         ]
@@ -213,9 +186,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/caveman/caveman-mode-tracker.js"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/caveman/caveman-mode-tracker.js"],
             "timeout": 10
           }
         ]
@@ -225,9 +196,7 @@
           {
             "type": "command",
             "command": "node",
-            "args": [
-              "${CLAUDE_PROJECT_DIR}/.claude/hooks/ponytail/ponytail-mode-tracker.js"
-            ],
+            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ponytail/ponytail-mode-tracker.js"],
             "timeout": 10
           }
         ]
