@@ -19,7 +19,7 @@
     "lint": "eslint 'src/**/*.{ts,js}' && tsc --noEmit",
     "format": "prettier --write 'src/**/*.{ts,js}'",
     "release-notes": "npm run lint && tsx src/releaser.ts",
-    "release": "npm run lint && tsx scripts/release-flow.ts",
+    "release": "npm test && npm run build && tsx scripts/release-flow.ts",
     "test": "node --import tsx --test \"src/**/*.test.ts\""
   },
   "keywords": [
