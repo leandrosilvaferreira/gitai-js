@@ -28,3 +28,6 @@ coverage/
 graphify-out/cost.json
 graphify-out/cache/
 graphify-out/
+
+# Local-only superpowers artifacts
+.superpowers/
