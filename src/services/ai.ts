@@ -208,11 +208,18 @@ If the instructions are not followed correctly, the result will not be accepted.
     if (this.config.provider === 'openai' && this.openai) {
       logger.ai(`Provider: openai - Model: ${this.config.model}`);
 
-      const reasoningModel = isReasoningModel(this.config.model);
-      const tokenParam = reasoningModel ? 'max_completion_tokens' : 'max_tokens';
-      const samplingParams = reasoningModel
-        ? {}
-        : { temperature: 0.5, top_p: 1.0, frequency_penalty: 0.0, presence_penalty: 0.0 };
+      if (isReasoningModel(this.config.model)) {
+        // gpt-5.x, o1, o3 → Responses API (chat/completions rejects these models)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const response = await (this.openai as any).responses.create({
+          model: this.config.model,
+          instructions: systemPrompt,
+          input: userPrompt,
+          max_output_tokens: 500,
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return (response as any).output_text?.trim() || '';
+      }
 
       const completion = await this.openai.chat.completions.create({
         messages: [
@@ -220,10 +227,12 @@ If the instructions are not followed correctly, the result will not be accepted.
           { role: 'user', content: userPrompt },
         ],
         model: this.config.model,
-        ...samplingParams,
-        [tokenParam]: 500,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
+        temperature: 0.5,
+        top_p: 1.0,
+        frequency_penalty: 0.0,
+        presence_penalty: 0.0,
+        max_tokens: 500,
+      });
 
       return completion.choices[0].message.content?.trim() || '';
     } else if (this.config.provider === 'groq' && this.groq) {
