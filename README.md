@@ -25,13 +25,13 @@ For generating the commit message, you can choose between the advanced language 
 
 Click the image below to watch the video tutorial about Gitai:
 
-[![AUTOMATED GIT COMMITS WITH AI: GITAI (OPEN SOURCE AND FREE)](http://img.youtube.com/vi/GAQ4mmGxg7c/0.jpg)](https://www.youtube.com/watch?v=GAQ4mmGxg7c "AUTOMATED GIT COMMITS WITH AI: GITAI (OPEN SOURCE AND FREE)")
+[![AUTOMATED GIT COMMITS WITH AI: GITAI (OPEN SOURCE AND FREE)](http://img.youtube.com/vi/GAQ4mmGxg7c/0.jpg)](https://www.youtube.com/watch?v=GAQ4mmGxg7c 'AUTOMATED GIT COMMITS WITH AI: GITAI (OPEN SOURCE AND FREE)')
 
 ## 📋 Prerequisites
 
 Before installing Gitai, ensure you have:
 
-- **Node.js 18 or higher** - [Download here](https://nodejs.org/)
+- **Node.js 20 or higher** - [Download here](https://nodejs.org/)
 - **Git** - [Download here](https://git-scm.com/)
 
 ## ⚡ Installing the Application
@@ -197,7 +197,7 @@ npm run release-notes -- v0.0.1 v0.0.2
 
 ### Prerequisites
 
-- Node.js 18 or higher
+- Node.js 20 or higher
 - npm (Node package manager)
 - git
 
@@ -303,13 +303,13 @@ Para a geração da mensagem de commit, é possível escolher entre os modelos d
 
 Clique na imagem abaixo para assistir ao tutorial em vídeo sobre o Gitai:
 
-[![AUTOMATIZAÇÃO DE COMMITS DO GIT COM IA: GITAI (OPEN SOURCE E GRATUITO)](http://img.youtube.com/vi/GAQ4mmGxg7c/0.jpg)](https://www.youtube.com/watch?v=GAQ4mmGxg7c "AUTOMATIZAÇÃO DE COMMITS DO GIT COM IA: GITAI (OPEN SOURCE E GRATUITO)")
+[![AUTOMATIZAÇÃO DE COMMITS DO GIT COM IA: GITAI (OPEN SOURCE E GRATUITO)](http://img.youtube.com/vi/GAQ4mmGxg7c/0.jpg)](https://www.youtube.com/watch?v=GAQ4mmGxg7c 'AUTOMATIZAÇÃO DE COMMITS DO GIT COM IA: GITAI (OPEN SOURCE E GRATUITO)')
 
 ## 📋 Pré-requisitos
 
 Antes de instalar o Gitai, certifique-se de ter:
 
-- **Node.js 18 ou superior** - [Baixe aqui](https://nodejs.org/)
+- **Node.js 20 ou superior** - [Baixe aqui](https://nodejs.org/)
 - **Git** - [Baixe aqui](https://git-scm.com/)
 
 ## ⚡ Instalando a Aplicação
@@ -475,7 +475,7 @@ npm run release-notes -- v0.0.1 v0.0.2
 
 ### Pré-requisitos
 
-- Node.js 18 ou superior
+- Node.js 20 ou superior
 - npm (gerenciador de pacotes do Node)
 - git
 
