@@ -4,8 +4,7 @@
  * Only triggers for *.test.ts files. Never blocks. Advisory output only.
  */
 import fs from 'node:fs';
-import { execSync } from 'node:child_process';
-import path from 'node:path';
+import { execFileSync } from 'node:child_process';
 
 let event = {};
 try {
@@ -22,14 +21,9 @@ if (!file.endsWith('.test.ts')) {
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR || process.cwd();
 
-// Find the node binary (respects nvm/fnm)
-const binDir = path.dirname(process.execPath);
-const env = { ...process.env, PATH: binDir + path.delimiter + (process.env.PATH || '') };
-
 try {
-  execSync(`node --import tsx --test "${file}"`, {
+  execFileSync(process.execPath, ['--import', 'tsx', '--test', file], {
     cwd: projectDir,
-    env,
     stdio: 'inherit',
     timeout: 60000,
   });
