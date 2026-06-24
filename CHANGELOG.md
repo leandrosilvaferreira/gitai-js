@@ -1,3 +1,27 @@
+# Release 1.0.9
+
+This release makes the AI providers work on modern Node (20+) by upgrading the OpenAI, Anthropic, and Groq SDKs, routes gpt-5.x/o1/o3 through the Responses API, and hardens the release flow with a test + build gate.
+
+### Bug Fixes
+
+- Upgrade OpenAI SDK 4.104→6.44, Anthropic 0.36→0.105, and Groq 0.15→1.3 to drop the legacy node-fetch shim that throws "Premature close" on Node 24.
+- Route OpenAI reasoning models (gpt-5.x, o1, o3) through the Responses API; chat-completions rejects them.
+
+### New Features
+
+- Auto-detect git tags in `release-notes` — `oldTag`/`newVersion` args are now optional.
+
+### Other Changes
+
+- Raise the Node floor to 20 (matching the upgraded SDKs; Node 18 is EOL).
+- Gate `npm run release` on `npm test` + `npm run build` before any push.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.0.9](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.0.8...v1.0.9)
+
+---
+
 # Release 1.0.8
 
 This release fixes a crash when using OpenAI reasoning models (gpt-5.x, o1, o3) — those models reject sampling parameters that were previously always sent.
