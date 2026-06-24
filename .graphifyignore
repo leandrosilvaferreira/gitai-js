@@ -1,0 +1,11 @@
+# .graphifyignore — gitignore syntax, merged with .gitignore (! negations win last).
+node_modules/
+dist/
+build/
+out/
+coverage/
+.next/
+.nuxt/
+.turbo/
+*.min.js
+*.generated.*

@@ -22,3 +22,9 @@ coverage/
 .idea/
 .vscode/
 *.swp
+# aia-harness
+.claude/settings.local.json
+.claude/*.local.*
+graphify-out/cost.json
+graphify-out/cache/
+graphify-out/

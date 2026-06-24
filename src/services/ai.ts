@@ -4,42 +4,47 @@ import OpenAI from 'openai';
 import { logger } from '../utils/logger.js';
 
 interface AIConfig {
-    provider: string;
-    model: string;
-    apiKey: string;
-    language: string;
+  provider: string;
+  model: string;
+  apiKey: string;
+  language: string;
+}
+
+// Reasoning models (o1, o3, gpt-5 family) reject temperature/top_p/frequency_penalty/presence_penalty
+export function isReasoningModel(model: string): boolean {
+  return ['o1', 'o3', 'gpt-5'].some((prefix) => model.startsWith(prefix));
 }
 
 export class AIService {
-    private config: AIConfig;
-    private openai?: OpenAI;
-    private groq?: Groq;
-    private anthropic?: Anthropic;
+  private config: AIConfig;
+  private openai?: OpenAI;
+  private groq?: Groq;
+  private anthropic?: Anthropic;
 
-    constructor(config: AIConfig) {
-        this.config = config;
-        this.initializeClient();
+  constructor(config: AIConfig) {
+    this.config = config;
+    this.initializeClient();
+  }
+
+  private initializeClient() {
+    switch (this.config.provider) {
+      case 'openai':
+        this.openai = new OpenAI({ apiKey: this.config.apiKey });
+        break;
+      case 'groq':
+        this.groq = new Groq({ apiKey: this.config.apiKey });
+        break;
+      case 'anthropic':
+        this.anthropic = new Anthropic({ apiKey: this.config.apiKey });
+        break;
+      default:
+        logger.error(`Provider ${this.config.provider} is not supported.`);
+        process.exit(1);
     }
+  }
 
-    private initializeClient() {
-        switch (this.config.provider) {
-            case 'openai':
-                this.openai = new OpenAI({ apiKey: this.config.apiKey });
-                break;
-            case 'groq':
-                this.groq = new Groq({ apiKey: this.config.apiKey });
-                break;
-            case 'anthropic':
-                this.anthropic = new Anthropic({ apiKey: this.config.apiKey });
-                break;
-            default:
-                logger.error(`Provider ${this.config.provider} is not supported.`);
-                process.exit(1);
-        }
-    }
-
-    private getCommitSystemPrompt(): string {
-        return `
+  private getCommitSystemPrompt(): string {
+    return `
 You are an assistant that helps generate commit messages for a Git repository.
 Commit messages must follow the Conventional Commits standard, which uses ONLY these specific prefixes to categorize the type of change made: feat, fix, docs, chore.
 The description must be concise and clear, explaining what was done, the reason for the change, and, if applicable, the impact of the change.
@@ -72,19 +77,24 @@ feat: add user authentication system - Implement JWT-based authentication with l
 
 If the instructions are not followed correctly, the result will not be accepted.
 `.trim();
+  }
+
+  private getCommitUserPrompt(
+    diffOutput: string,
+    deletedFiles: string[],
+    projectLanguage: string,
+    baseMessage: string
+  ): string {
+    let deletedFilesSection = '';
+    if (deletedFiles && deletedFiles.length > 0) {
+      const filesToList = deletedFiles.slice(0, 30);
+      deletedFilesSection = '\n\nDeleted Files:\n' + filesToList.map((f) => `- ${f}`).join('\n');
+      if (deletedFiles.length > 30) {
+        deletedFilesSection += `\n...and ${deletedFiles.length - 30} more deleted files.`;
+      }
     }
 
-    private getCommitUserPrompt(diffOutput: string, deletedFiles: string[], projectLanguage: string, baseMessage: string): string {
-        let deletedFilesSection = '';
-        if (deletedFiles && deletedFiles.length > 0) {
-            const filesToList = deletedFiles.slice(0, 30);
-            deletedFilesSection = '\n\nDeleted Files:\n' + filesToList.map(f => `- ${f}`).join('\n');
-            if (deletedFiles.length > 30) {
-                deletedFilesSection += `\n...and ${deletedFiles.length - 30} more deleted files.`;
-            }
-        }
-
-        return `
+    return `
 Based on the information provided below, create a commit message following the Conventional Commits standard.
 
 The ONLY accepted prefixes for this project are:
@@ -123,26 +133,37 @@ Line 2: [empty line]
 Line 3+: [detailed explanation of changes, reasons, and impact]
 </output_format>
 `.trim();
-    }
+  }
 
-    async generateCommitMessage(diffOutput: string, deletedFiles: string[], projectLanguage: string, baseMessage: string): Promise<string> {
-        const systemPrompt = this.getCommitSystemPrompt();
-        const userPrompt = this.getCommitUserPrompt(diffOutput, deletedFiles, projectLanguage, baseMessage);
-        
-        const commitMessage = await this.callApi(systemPrompt, userPrompt);
-        const signature = "\n\n🤖 Commit generated with [GitaiJS](https://github.com/leandrosilvaferreira/gitai-js)";
-        return commitMessage + signature;
-    }
-    
-    // Logic for release notes (used by releaser.ts)
-    async generateReleaseNotes(commits: string, newVersion: string, tag: string): Promise<string> {
-         const systemPrompt = `
+  async generateCommitMessage(
+    diffOutput: string,
+    deletedFiles: string[],
+    projectLanguage: string,
+    baseMessage: string
+  ): Promise<string> {
+    const systemPrompt = this.getCommitSystemPrompt();
+    const userPrompt = this.getCommitUserPrompt(
+      diffOutput,
+      deletedFiles,
+      projectLanguage,
+      baseMessage
+    );
+
+    const commitMessage = await this.callApi(systemPrompt, userPrompt);
+    const signature =
+      '\n\n🤖 Commit generated with [GitaiJS](https://github.com/leandrosilvaferreira/gitai-js)';
+    return commitMessage + signature;
+  }
+
+  // Logic for release notes (used by releaser.ts)
+  async generateReleaseNotes(commits: string, newVersion: string, tag: string): Promise<string> {
+    const systemPrompt = `
 You are an assistant that helps generate release notes for a Git repository.
 Commit messages should be organized into categories such as New Features, Bug Fixes, and Other Changes.
 The output must be a markdown-formatted text according to the provided template, with no additional comments or formatting.
 `.trim();
-        
-        const userPrompt = `
+
+    const userPrompt = `
 You are an assistant that helps generate release notes for a Git repository.
 Below are the commits since the last tag ${tag}.
 Please organize the commits into the following categories: New Features, Bug Fixes, and Other Changes.
@@ -180,68 +201,62 @@ Important rules:
 If the instructions are not followed correctly, the result will not be accepted.
 `.trim();
 
-        return this.callApi(systemPrompt, userPrompt);
+    return this.callApi(systemPrompt, userPrompt);
+  }
 
+  private async callApi(systemPrompt: string, userPrompt: string): Promise<string> {
+    if (this.config.provider === 'openai' && this.openai) {
+      logger.ai(`Provider: openai - Model: ${this.config.model}`);
+
+      const reasoningModel = isReasoningModel(this.config.model);
+      const tokenParam = reasoningModel ? 'max_completion_tokens' : 'max_tokens';
+      const samplingParams = reasoningModel
+        ? {}
+        : { temperature: 0.5, top_p: 1.0, frequency_penalty: 0.0, presence_penalty: 0.0 };
+
+      const completion = await this.openai.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: this.config.model,
+        ...samplingParams,
+        [tokenParam]: 500,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any);
+
+      return completion.choices[0].message.content?.trim() || '';
+    } else if (this.config.provider === 'groq' && this.groq) {
+      logger.ai(`Provider: groq - Model: ${this.config.model}`);
+      const completion = await this.groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: this.config.model,
+        temperature: 0.5,
+        max_tokens: 500,
+        top_p: 1.0,
+        frequency_penalty: 0.0,
+        presence_penalty: 0.0,
+      });
+      return completion.choices[0].message.content?.trim() || '';
+    } else if (this.config.provider === 'anthropic' && this.anthropic) {
+      logger.ai(`Provider: anthropic - Model: ${this.config.model}`);
+      const message = await this.anthropic.messages.create({
+        model: this.config.model,
+        max_tokens: 500,
+        temperature: 0.5,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      });
+      const contentBlock = message.content[0];
+      if (contentBlock.type === 'text') {
+        return contentBlock.text.trim();
+      }
+      return '';
     }
 
-
-    private async callApi(systemPrompt: string, userPrompt: string): Promise<string> {
-        if (this.config.provider === 'openai' && this.openai) {
-            logger.ai(`Provider: openai - Model: ${this.config.model}`);
-            
-            const isNewModel = ['o1', 'o3', 'gpt-5'].some(prefix => this.config.model.startsWith(prefix));
-            const tokenParam = isNewModel ? 'max_completion_tokens' : 'max_tokens';
-            
-            const completion = await this.openai.chat.completions.create({
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                model: this.config.model,
-                temperature: 0.5,
-                top_p: 1.0,
-                frequency_penalty: 0.0,
-                presence_penalty: 0.0,
-                [tokenParam]: 500,
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any);
-
-            return completion.choices[0].message.content?.trim() || '';
-
-        } else if (this.config.provider === 'groq' && this.groq) {
-             logger.ai(`Provider: groq - Model: ${this.config.model}`);
-             const completion = await this.groq.chat.completions.create({
-                messages: [
-                    { role: 'system', content: systemPrompt },
-                    { role: 'user', content: userPrompt }
-                ],
-                model: this.config.model,
-                temperature: 0.5,
-                max_tokens: 500,
-                top_p: 1.0,
-                frequency_penalty: 0.0,
-                presence_penalty: 0.0
-            });
-            return completion.choices[0].message.content?.trim() || '';
-
-        } else if (this.config.provider === 'anthropic' && this.anthropic) {
-            logger.ai(`Provider: anthropic - Model: ${this.config.model}`);
-            const message = await this.anthropic.messages.create({
-                model: this.config.model,
-                max_tokens: 500,
-                temperature: 0.5,
-                system: systemPrompt,
-                messages: [
-                    { role: 'user', content: userPrompt }
-                ]
-            });
-            const contentBlock = message.content[0];
-            if (contentBlock.type === 'text') {
-                return contentBlock.text.trim();
-            }
-            return '';
-        }
-
-        return '';
-    }
+    return '';
+  }
 }
