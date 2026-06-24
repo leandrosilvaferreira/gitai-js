@@ -56,7 +56,7 @@
     "execa": "^9.5.2",
     "groq-sdk": "^0.15.0",
     "inquirer": "^12.4.1",
-    "openai": "^4.82.0",
+    "openai": "^6.44.0",
     "semver": "^7.7.3",
     "update-notifier": "^7.3.1"
   },

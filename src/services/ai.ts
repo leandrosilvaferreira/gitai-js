@@ -210,15 +210,13 @@ If the instructions are not followed correctly, the result will not be accepted.
 
       if (isReasoningModel(this.config.model)) {
         // gpt-5.x, o1, o3 → Responses API (chat/completions rejects these models)
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const response = await (this.openai as any).responses.create({
+        const response = await this.openai.responses.create({
           model: this.config.model,
           instructions: systemPrompt,
           input: userPrompt,
           max_output_tokens: 500,
         });
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return (response as any).output_text?.trim() || '';
+        return response.output_text?.trim() || '';
       }
 
       const completion = await this.openai.chat.completions.create({

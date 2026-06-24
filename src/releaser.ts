@@ -30,7 +30,9 @@ async function resolveTagArgs(
     process.exit(1);
   }
 
-  const newVersion = argNewVersion ?? tags[0];
+  // Template prepends "v" (v${newVersion}), so newVersion must be bare (e.g. "1.0.8").
+  // Accept tags/args with or without the "v" prefix and normalize.
+  const newVersion = (argNewVersion ?? tags[0]).replace(/^v/, '');
   const oldTag = argOldTag ?? tags[1];
 
   logger.info(`Auto-detected: oldTag=${oldTag}  newVersion=${newVersion}`);
