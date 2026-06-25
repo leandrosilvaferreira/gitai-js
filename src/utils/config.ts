@@ -10,6 +10,7 @@ export interface AppConfig {
   PROVIDER: string;
   API_KEY: string;
   MODEL: string;
+  BASE_URL?: string;
 }
 
 export const CONFIG_PATH = path.join(os.homedir(), '.gitai');
@@ -51,7 +52,8 @@ export const loadConfig = (configPath: string = CONFIG_PATH): AppConfig => {
 
 export const saveConfig = (config: AppConfig, configPath: string = CONFIG_PATH): void => {
   const content =
-    Object.entries(config)
+    (Object.entries(config) as [string, string | undefined][])
+      .filter(([, value]) => value !== undefined && value !== '')
       .map(([key, value]) => `${key}=${value}`)
       .join('\n') + '\n';
 
