@@ -50,9 +50,10 @@ export const loadConfig = (configPath: string = CONFIG_PATH): AppConfig => {
 };
 
 export const saveConfig = (config: AppConfig, configPath: string = CONFIG_PATH): void => {
-  const content = Object.entries(config)
-    .map(([key, value]) => `${key}=${value}`)
-    .join('\n');
+  const content =
+    Object.entries(config)
+      .map(([key, value]) => `${key}=${value}`)
+      .join('\n') + '\n';
 
   // Write with secure permissions (600 - read/write only by owner) since it contains API keys
   fs.writeFileSync(configPath, content, { mode: 0o600 });

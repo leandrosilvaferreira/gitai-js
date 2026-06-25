@@ -49,6 +49,18 @@ Ao despachar subagentes, você DEVE usar o agente especialista correspondente da
 | `penetration-tester`     | pentest, vulnerabilidades, segurança ofensiva                                                                      |
 | `security-auditor`       | auditoria de segurança, SAST, revisão defensiva                                                                    |
 
+### Superpowers Skills → Especialistas do Projeto (Bridging Obrigatório)
+
+Skills do superpowers (`dispatching-parallel-agents`, `subagent-driven-development`, `executing-plans`, `systematic-debugging`) usam `general-purpose` como tipo padrão nos exemplos. **NUNCA usar `general-purpose`** quando existe especialista cobrindo o domínio — substituir sempre pelo da tabela acima.
+
+> Fundamento: o próprio superpowers declara que "User's explicit instructions (CLAUDE.md) — highest priority". Esta seção aplica essa prioridade sobre os tipos de agente sugeridos pelos skills.
+
+**Fluxo correto com superpowers:**
+
+1. Skill identifica domínios independentes → principal mapeia cada um ao especialista da tabela
+2. Despacha com `subagent_type: "<especialista>"` no Agent tool
+3. Integra resultados normalmente
+
 ## Architecture map
 
 CLI (`gitai`) que gera commits Convencionais via IA. Fluxo single-pass; sem estado em disco além de `~/.gitai`.
