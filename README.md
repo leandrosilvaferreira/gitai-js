@@ -10,6 +10,7 @@ Choose your language / Escolha o idioma:
 # 🇺🇸 English
 
 [![Release Notes](https://img.shields.io/github/release/leandrosilvaferreira/gitai-js)](https://github.com/leandrosilvaferreira/gitai-js/releases)
+[![npm downloads](https://img.shields.io/npm/dt/@notyped/gitai)](https://www.npmjs.com/package/@notyped/gitai)
 [![GitHub star chart](https://img.shields.io/github/stars/leandrosilvaferreira/gitai-js?style=social)](https://star-history.com/#leandrosilvaferreira/gitai-js)
 [![GitHub fork](https://img.shields.io/github/forks/leandrosilvaferreira/gitai-js?style=social)](https://github.com/leandrosilvaferreira/gitai-js/fork)
 
@@ -351,6 +352,7 @@ For more details, see the [LICENSE](LICENSE.md) file in the repository.
 # Gitai - Conventional Commits automatizados no Git com IA
 
 [![Release Notes](https://img.shields.io/github/release/leandrosilvaferreira/gitai-js)](https://github.com/leandrosilvaferreira/gitai-js/releases)
+[![npm downloads](https://img.shields.io/npm/dt/@notyped/gitai)](https://www.npmjs.com/package/@notyped/gitai)
 [![GitHub star chart](https://img.shields.io/github/stars/leandrosilvaferreira/gitai-js?style=social)](https://star-history.com/#leandrosilvaferreira/gitai-js)
 [![GitHub fork](https://img.shields.io/github/forks/leandrosilvaferreira/gitai-js?style=social)](https://github.com/leandrosilvaferreira/gitai-js/fork)
 
