@@ -5,10 +5,19 @@ import path from 'path';
 
 import { AIService } from './services/ai.js';
 import { checkConfigExists, loadConfig, validateNodeVersion } from './utils/config.js';
-import { commitChanges, getDeletedFiles, getDiffWithNewFiles, hasUncommittedChanges, isBranchAhead, performGitPull, runGitCommand } from './utils/git.js';
+import {
+  commitChanges,
+  getDeletedFiles,
+  getDiffWithNewFiles,
+  hasUncommittedChanges,
+  isBranchAhead,
+  performGitPull,
+  runGitCommand,
+} from './utils/git.js';
 import { detectProjectLanguage, printDetectedLanguage } from './utils/language.js';
 import { logger } from './utils/logger.js';
 import { runSetup } from './utils/setup.js';
+import { readClaudeSettings } from './utils/claude-settings.js';
 
 import updateNotifier from 'update-notifier';
 import { engines, name, version } from './version.js';
@@ -18,170 +27,179 @@ updateNotifier({ pkg: { name: '@notyped/gitai', version } }).notify();
 
 // 0. Validate Node Version
 if (!validateNodeVersion()) {
-    console.error(chalk.red(`\n❌  GitAI requires Node.js ${engines.node} or higher.`));
-    console.error(chalk.yellow(`   Current version: ${process.version}\n`));
-    process.exit(1);
+  console.error(chalk.red(`\n❌  GitAI requires Node.js ${engines.node} or higher.`));
+  console.error(chalk.yellow(`   Current version: ${process.version}\n`));
+  process.exit(1);
 }
 
 const program = new Command();
 
-program
-  .name(name)
-  .description('AI-powered git commit assistant')
-  .version(version);
+program.name(name).description('AI-powered git commit assistant').version(version);
 
 // Custom help handler to show version
 program.on('--help', () => {
-    console.log('');
-    console.log(chalk.cyan('━'.repeat(50)));
-    console.log(chalk.bold.blue(`  GitAI v${version}`));
-    console.log(chalk.dim('  AI-powered git commit assistant'));
-    console.log(chalk.cyan('━'.repeat(50)));
-    console.log('');
-    console.log(chalk.yellow('  Examples:'));
-    console.log('');
-    console.log(chalk.green('    $ gitai'));
-    console.log(chalk.dim('    Run in current directory'));
-    console.log('');
-    console.log(chalk.green('    $ gitai . "feat: initial commit"'));
-    console.log(chalk.dim('    Run with base message'));
-    console.log('');
-    console.log(chalk.green('    $ gitai . --push'));
-    console.log(chalk.dim('    Run and push changes (base message is optional)'));
-    console.log('');
-    console.log(chalk.green('    $ gitai . "feat: wip" --push'));
-    console.log(chalk.dim('    Run with base message and push'));
-    console.log('');
+  console.log('');
+  console.log(chalk.cyan('━'.repeat(50)));
+  console.log(chalk.bold.blue(`  GitAI v${version}`));
+  console.log(chalk.dim('  AI-powered git commit assistant'));
+  console.log(chalk.cyan('━'.repeat(50)));
+  console.log('');
+  console.log(chalk.yellow('  Examples:'));
+  console.log('');
+  console.log(chalk.green('    $ gitai'));
+  console.log(chalk.dim('    Run in current directory'));
+  console.log('');
+  console.log(chalk.green('    $ gitai . "feat: initial commit"'));
+  console.log(chalk.dim('    Run with base message'));
+  console.log('');
+  console.log(chalk.green('    $ gitai . --push'));
+  console.log(chalk.dim('    Run and push changes (base message is optional)'));
+  console.log('');
+  console.log(chalk.green('    $ gitai . "feat: wip" --push'));
+  console.log(chalk.dim('    Run with base message and push'));
+  console.log('');
 });
 
 program
-    .argument('[projectPath]', 'The path to the project', '.')
-    .argument('[baseMessage]', 'The base commit message (Optional)')
-    .option('-p, --push', 'Whether to push after committing', false)
-    .action(async (projectPathArg, baseMessageArg, options) => {
-        
-        // 1. Configuration Check (Global Only)
-        let config;
-        let isFirstRun = false;
-        try {
-            if (!checkConfigExists()) {
-                config = await runSetup();
-                isFirstRun = true;
-            } else {
-                config = loadConfig();
-            }
-        } catch (error: unknown) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            logger.error(`Failed to load configuration: ${errorMessage}`);
-            process.exit(1);
-        }
+  .argument('[projectPath]', 'The path to the project', '.')
+  .argument('[baseMessage]', 'The base commit message (Optional)')
+  .option('-p, --push', 'Whether to push after committing', false)
+  .action(async (projectPathArg, baseMessageArg, options) => {
+    // 1. Configuration Check (Global Only)
+    let config;
+    let isFirstRun = false;
+    try {
+      if (!checkConfigExists()) {
+        config = await runSetup();
+        isFirstRun = true;
+      } else {
+        config = loadConfig();
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.error(`Failed to load configuration: ${errorMessage}`);
+      process.exit(1);
+    }
 
-        if (isFirstRun) {
-            console.log('');
-            console.log(chalk.green('✅ GitAI installed and configured successfully!'));
-            console.log('');
-            console.log('Now you can run it inside any git repository.');
-            console.log('');
-            console.log(chalk.yellow('Examples:'));
-            console.log('');
-            console.log(chalk.green('    $ gitai'));
-            console.log(chalk.dim('    Run in current directory'));
-            console.log('');
-            console.log(chalk.green('    $ gitai . "feat: initial commit"'));
-            console.log(chalk.dim('    Run with base message'));
-            console.log('');
-            console.log(chalk.green('    $ gitai . --push'));
-            console.log(chalk.dim('    Run and push changes (base message is optional)'));
-            console.log('');
-            console.log(chalk.green('    $ gitai . "feat: wip" --push'));
-            console.log(chalk.dim('    Run with base message and push'));
-            console.log('');
-            process.exit(0);
-        }
+    if (isFirstRun) {
+      console.log('');
+      console.log(chalk.green('✅ GitAI installed and configured successfully!'));
+      console.log('');
+      console.log('Now you can run it inside any git repository.');
+      console.log('');
+      console.log(chalk.yellow('Examples:'));
+      console.log('');
+      console.log(chalk.green('    $ gitai'));
+      console.log(chalk.dim('    Run in current directory'));
+      console.log('');
+      console.log(chalk.green('    $ gitai . "feat: initial commit"'));
+      console.log(chalk.dim('    Run with base message'));
+      console.log('');
+      console.log(chalk.green('    $ gitai . --push'));
+      console.log(chalk.dim('    Run and push changes (base message is optional)'));
+      console.log('');
+      console.log(chalk.green('    $ gitai . "feat: wip" --push'));
+      console.log(chalk.dim('    Run with base message and push'));
+      console.log('');
+      process.exit(0);
+    }
 
-        logger.header(`Gitai v${version}`);
-        
-        const projectPath = path.resolve(projectPathArg);
-        logger.info(`📁 project_path: ${projectPath}\n`);
+    logger.header(`Gitai v${version}`);
 
-        const aiService = new AIService({
-            provider: config.PROVIDER,
-            model: config.MODEL,
-            apiKey: config.API_KEY,
-            language: config.LANGUAGE
-        });
+    const projectPath = path.resolve(projectPathArg);
+    logger.info(`📁 project_path: ${projectPath}\n`);
 
-        // Change process CWD to project path to ensure git commands run there
-        try {
-            process.chdir(projectPath);
-        } catch {
-            logger.error(`Failed to change directory to ${projectPath}`);
-            process.exit(1);
-        }
+    const claudeSettings = readClaudeSettings();
 
-        // 2. Check for uncommitted changes
-        if (await hasUncommittedChanges(projectPath)) {
-            logger.warning('Uncommitted local changes detected.');
+    const aiService = new AIService({
+      provider: config.PROVIDER,
+      model: config.MODEL,
+      apiKey: config.API_KEY,
+      language: config.LANGUAGE,
+      baseURL:
+        config.BASE_URL ||
+        (config.PROVIDER === 'anthropic' ? claudeSettings.ANTHROPIC_BASE_URL : undefined),
+      authToken: config.PROVIDER === 'anthropic' ? claudeSettings.ANTHROPIC_AUTH_TOKEN : undefined,
+    });
 
-            const projectLanguage = await detectProjectLanguage(projectPath);
-            printDetectedLanguage(projectLanguage);
+    // Change process CWD to project path to ensure git commands run there
+    try {
+      process.chdir(projectPath);
+    } catch {
+      logger.error(`Failed to change directory to ${projectPath}`);
+      process.exit(1);
+    }
 
-            const diffOutput = await getDiffWithNewFiles(projectPath);
-            const deletedFiles = await getDeletedFiles(projectPath);
+    // 2. Check for uncommitted changes
+    if (await hasUncommittedChanges(projectPath)) {
+      logger.warning('Uncommitted local changes detected.');
 
-            // Generate commit message
-            // Allow empty base message (will rely on git diffs)
-            const baseMessage = baseMessageArg || '';
+      const projectLanguage = await detectProjectLanguage(projectPath);
+      printDetectedLanguage(projectLanguage);
 
-            const commitMessage = await aiService.generateCommitMessage(diffOutput, deletedFiles, projectLanguage, baseMessage);
-            
-            logger.commit(commitMessage);
-            
-            await commitChanges(commitMessage, projectPath);
-            logger.success('Gitai successfully committed local changes.');
-            
-        } else {
-            logger.info('No local changes to commit before git pull.');
-        }
+      const diffOutput = await getDiffWithNewFiles(projectPath);
+      const deletedFiles = await getDeletedFiles(projectPath);
 
-        // 3. Perform Git Pull
-        const pullSuccessful = await performGitPull(projectPath);
-        
-        if (!pullSuccessful) {
-            logger.error('Git pull failed due to conflicts. Please resolve the conflicts manually.');
-            process.exit(1);
-        }
+      // Generate commit message
+      // Allow empty base message (will rely on git diffs)
+      const baseMessage = baseMessageArg || '';
 
-        // 4. Check for conflicts/changes after pull
-        if (await hasUncommittedChanges(projectPath)) {
-             logger.warning('Conflicts or uncommitted changes detected after pull.');
+      const commitMessage = await aiService.generateCommitMessage(
+        diffOutput,
+        deletedFiles,
+        projectLanguage,
+        baseMessage
+      );
 
-             const projectLanguage = await detectProjectLanguage(projectPath);
-             printDetectedLanguage(projectLanguage);
+      logger.commit(commitMessage);
 
-             const diffOutput = await getDiffWithNewFiles(projectPath);
-             const deletedFiles = await getDeletedFiles(projectPath);
+      await commitChanges(commitMessage, projectPath);
+      logger.success('Gitai successfully committed local changes.');
+    } else {
+      logger.info('No local changes to commit before git pull.');
+    }
 
-             const commitMessage = await aiService.generateCommitMessage(diffOutput, deletedFiles, projectLanguage, "Resolving conflicts after git pull");
-             logger.commit(commitMessage);
-             
-             await commitChanges(commitMessage, projectPath);
-             logger.success('Gitai successfully committed changes after pull.');
+    // 3. Perform Git Pull
+    const pullSuccessful = await performGitPull(projectPath);
 
-        } else {
-             logger.info('No changes to commit after git pull.');
-        }
+    if (!pullSuccessful) {
+      logger.error('Git pull failed due to conflicts. Please resolve the conflicts manually.');
+      process.exit(1);
+    }
 
-        // 5. Push if requested
-        if (options.push) {
-            if (await isBranchAhead(projectPath)) {
-                await runGitCommand(['push'], projectPath);
-                logger.success('Gitai successfully pushed changes.');
-            } else {
-                logger.info('No changes to push. The local branch is synchronized with the remote.');
-            }
-        }
+    // 4. Check for conflicts/changes after pull
+    if (await hasUncommittedChanges(projectPath)) {
+      logger.warning('Conflicts or uncommitted changes detected after pull.');
 
+      const projectLanguage = await detectProjectLanguage(projectPath);
+      printDetectedLanguage(projectLanguage);
+
+      const diffOutput = await getDiffWithNewFiles(projectPath);
+      const deletedFiles = await getDeletedFiles(projectPath);
+
+      const commitMessage = await aiService.generateCommitMessage(
+        diffOutput,
+        deletedFiles,
+        projectLanguage,
+        'Resolving conflicts after git pull'
+      );
+      logger.commit(commitMessage);
+
+      await commitChanges(commitMessage, projectPath);
+      logger.success('Gitai successfully committed changes after pull.');
+    } else {
+      logger.info('No changes to commit after git pull.');
+    }
+
+    // 5. Push if requested
+    if (options.push) {
+      if (await isBranchAhead(projectPath)) {
+        await runGitCommand(['push'], projectPath);
+        logger.success('Gitai successfully pushed changes.');
+      } else {
+        logger.info('No changes to push. The local branch is synchronized with the remote.');
+      }
+    }
   });
 
 program.parse();

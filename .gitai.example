@@ -1,0 +1,26 @@
+# ~/.gitai — gitai global configuration
+# Copy this file to ~/.gitai and fill in your values.
+# File permissions should be 600 (owner read/write only): chmod 600 ~/.gitai
+
+# Language for commit messages
+LANGUAGE=en
+
+# AI provider: openai | groq | anthropic
+PROVIDER=openai
+
+# API key for the selected provider
+API_KEY=your_api_key_here
+
+# Model ID
+# OpenAI:    gpt-5.2
+# Groq:      llama-3.3-70b-versatile
+# Anthropic: claude-sonnet-4-5-20250929
+MODEL=gpt-5.2
+
+# Custom base URL (optional)
+# Use this to point gitai at any OpenAI-compatible endpoint:
+#   Ollama:      http://localhost:11434/v1
+#   LiteLLM:     http://localhost:4000/v1
+#   Together AI: https://api.together.xyz/v1
+# When set, this takes priority over ANTHROPIC_BASE_URL from ~/.claude/settings.json
+# BASE_URL=http://localhost:11434/v1

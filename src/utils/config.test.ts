@@ -214,3 +214,75 @@ test('saveConfig round-trips: written file can be read back to the original conf
 test('validateNodeVersion returns true for the current Node.js version (>=18 required)', () => {
   assert.equal(validateNodeVersion(), true);
 });
+
+// ---------------------------------------------------------------------------
+// AppConfig.BASE_URL — optional field
+// ---------------------------------------------------------------------------
+
+test('saveConfig omits BASE_URL line when field is undefined', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gitai-config-test-'));
+  const p = path.join(dir, 'config');
+  try {
+    saveConfig({ LANGUAGE: 'en', PROVIDER: 'openai', API_KEY: 'sk-x', MODEL: 'gpt-4o' }, p);
+    const raw = fs.readFileSync(p, 'utf-8');
+    assert.ok(!raw.includes('BASE_URL'), 'BASE_URL must not appear in file when undefined');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('saveConfig writes BASE_URL when provided', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gitai-config-test-'));
+  const p = path.join(dir, 'config');
+  try {
+    saveConfig(
+      {
+        LANGUAGE: 'en',
+        PROVIDER: 'openai',
+        API_KEY: 'sk-x',
+        MODEL: 'gpt-4o',
+        BASE_URL: 'http://localhost:11434/v1',
+      },
+      p
+    );
+    const raw = fs.readFileSync(p, 'utf-8');
+    assert.ok(raw.includes('BASE_URL=http://localhost:11434/v1'), 'Expected BASE_URL line in file');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('loadConfig reads BASE_URL when present', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gitai-config-test-'));
+  const p = path.join(dir, 'config');
+  try {
+    fs.writeFileSync(
+      p,
+      'LANGUAGE=en\nPROVIDER=openai\nAPI_KEY=sk-x\nMODEL=gpt-4o\nBASE_URL=http://localhost:11434/v1\n',
+      { mode: 0o600 }
+    );
+    const config = loadConfig(p);
+    assert.equal(config.BASE_URL, 'http://localhost:11434/v1');
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
+
+test('saveConfig round-trips with BASE_URL', () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gitai-config-test-'));
+  const p = path.join(dir, 'config');
+  try {
+    const original = {
+      LANGUAGE: 'en',
+      PROVIDER: 'openai',
+      API_KEY: 'sk-x',
+      MODEL: 'gpt-4o',
+      BASE_URL: 'http://localhost:11434/v1',
+    };
+    saveConfig(original, p);
+    const loaded = loadConfig(p);
+    assert.deepEqual(loaded, original);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
+  }
+});
