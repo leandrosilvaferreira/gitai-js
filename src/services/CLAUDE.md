@@ -3,15 +3,18 @@
 Scope: services layer (layer).
 
 ## Responsibility
-<!-- AI-ENRICH: from the real files in src/services/, state in 2-4 sentences what concretely belongs here and what does NOT (where that other code lives). Replace this comment and the line below. -->
-The services layer.
+
+Service classes that communicate with external integrations. Currently contains only `ai.ts` — the `AIService` class, the single abstraction over three AI providers (OpenAI, Groq, Anthropic), exposing `generateCommitMessage()` and `generateReleaseNotes()` and centralizing all prompt engineering. What does NOT belong here: git/subprocess logic (lives in `src/utils/git.ts`), CLI orchestration (`src/index.ts`), or config/IO reading (`src/utils/`). Services return strings to the caller; `index.ts` is responsible for applying them to git.
 
 ## Local conventions
-<!-- AI-ENRICH: 2-5 conventions actually observed in src/services/ (naming, base classes, error handling, file layout). Replace the placeholder below with concrete, directory-specific ones. Leave the "## Rules" section untouched — those are fixed. -->
 
-- _Directory-specific conventions are added here during `/aia-harness:init` enrichment._
+- One service = one class (`AIService`), built with a typed config object (`AIConfig`); provider clients are created on demand in `initializeClient()` via `switch (provider)`.
+- Prompts centralized in private `get*SystemPrompt()` methods that return `.trim()` template strings — keep prompts here, not inline at the call site.
+- Provider parameter differences handled by branch (e.g., `max_completion_tokens` vs `max_tokens`); unsupported provider → `logger.error` + `process.exit(1)`.
+- Import the shared `logger` from `../utils/logger.js` (`.js` ESM extension required); never raw `console`.
 
 ## Rules
+
 <!-- aia-harness:fixed — non-negotiable; do not edit, reorder, or remove during enrichment -->
 
 - Follow the root `CLAUDE.md` canonical commands.

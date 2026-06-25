@@ -21,75 +21,75 @@ Always use these exact commands (do not guess):
 - **Build:** `npm run build`
 - **Run/Dev:** `npm run dev`
 
-> **Testes:** `node:test` — rode `npm run test`. Escreva testes unitários para **toda** função nova ou módulo adicionado; nunca declare trabalho concluído sem testes passando.
+> **Tests:** `node:test` — run `npm run test`. Write unit tests for **every** new function or module added; never declare work complete without passing tests.
 
 ## Workflow & Agents
 
-Toda implementação não-trivial: invoke `superpowers:subagent-driven-development`.
-Ao despachar subagentes, você DEVE usar o agente especialista correspondente da tabela abaixo — nunca o agente genérico quando um especialista estiver listado. Cruze o tipo da tarefa com a coluna "When to use" e passe o nome exato como `subagent_type`.
+Every non-trivial implementation: invoke `superpowers:subagent-driven-development`.
+When dispatching subagents, you MUST use the corresponding specialist agent from the table below — never the generic agent when a specialist is listed. Match the task type to the "When to use" column and pass the exact name as `subagent_type`.
 
-| Agent                    | When to use                                                                                                        |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `orchestrator`           | tarefas multi-agente ou cross-domain — despache ESTE para subdelegar; nunca despache agentes genéricos diretamente |
-| `code-reviewer`          | revisão após qualquer mudança de código                                                                            |
-| `security-reviewer`      | revisão de segurança antes de merge                                                                                |
-| `typescript-reviewer`    | revisão código TypeScript/JavaScript                                                                               |
-| `qa-automation-engineer` | E2E, automação de QA, Playwright/Cypress                                                                           |
-| `test-engineer`          | unit tests, integração, cobertura de código                                                                        |
-| `database-architect`     | schema, migrations, queries, modelagem de dados                                                                    |
-| `devops-engineer`        | deploy, CI/CD, infra, produção                                                                                     |
-| `backend-specialist`     | API, lógica server-side, integração com banco                                                                      |
-| `performance-optimizer`  | otimização de performance, profiling                                                                               |
-| `product-manager`        | decisões de produto, priorização, roadmap                                                                          |
-| `product-owner`          | refinamento de backlog, critérios de aceite                                                                        |
-| `project-planner`        | planejamento de features, decomposição de tarefas                                                                  |
-| `code-archaeologist`     | entender código legado, refatoração                                                                                |
-| `debugger`               | depuração de bugs complexos, root cause analysis                                                                   |
-| `explorer-agent`         | exploração de codebase desconhecida, mapeamento                                                                    |
-| `documentation-writer`   | apenas quando documentação explicitamente solicitada                                                               |
-| `penetration-tester`     | pentest, vulnerabilidades, segurança ofensiva                                                                      |
-| `security-auditor`       | auditoria de segurança, SAST, revisão defensiva                                                                    |
+| Agent                    | When to use                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------- |
+| `orchestrator`           | multi-agent or cross-domain tasks — dispatch THIS one to sub-delegate; never dispatch generic agents directly |
+| `code-reviewer`          | review after any code change                                                                                  |
+| `security-reviewer`      | security review before merge                                                                                  |
+| `typescript-reviewer`    | TypeScript/JavaScript code review                                                                             |
+| `qa-automation-engineer` | E2E, QA automation, Playwright/Cypress                                                                        |
+| `test-engineer`          | unit tests, integration, code coverage                                                                        |
+| `database-architect`     | schema, migrations, queries, data modeling                                                                    |
+| `devops-engineer`        | deploy, CI/CD, infra, production                                                                              |
+| `backend-specialist`     | API, server-side logic, database integration                                                                  |
+| `performance-optimizer`  | performance optimization, profiling                                                                           |
+| `product-manager`        | product decisions, prioritization, roadmap                                                                    |
+| `product-owner`          | backlog refinement, acceptance criteria                                                                       |
+| `project-planner`        | feature planning, task decomposition                                                                          |
+| `code-archaeologist`     | understanding legacy code, refactoring                                                                        |
+| `debugger`               | complex bug debugging, root cause analysis                                                                    |
+| `explorer-agent`         | unknown codebase exploration, mapping                                                                         |
+| `documentation-writer`   | only when documentation is explicitly requested                                                               |
+| `penetration-tester`     | pentest, vulnerabilities, offensive security                                                                  |
+| `security-auditor`       | security audit, SAST, defensive review                                                                        |
 
-### Superpowers Skills → Especialistas do Projeto (Bridging Obrigatório)
+### Superpowers Skills → Project Specialists (Mandatory Bridging)
 
-Skills do superpowers (`dispatching-parallel-agents`, `subagent-driven-development`, `executing-plans`, `systematic-debugging`) usam `general-purpose` como tipo padrão nos exemplos. **NUNCA usar `general-purpose`** quando existe especialista cobrindo o domínio — substituir sempre pelo da tabela acima.
+Superpowers skills (`dispatching-parallel-agents`, `subagent-driven-development`, `executing-plans`, `systematic-debugging`) default to `general-purpose` in their examples. **NEVER use `general-purpose`** when a specialist covers the domain — always replace with one from the table above.
 
-> Fundamento: o próprio superpowers declara que "User's explicit instructions (CLAUDE.md) — highest priority". Esta seção aplica essa prioridade sobre os tipos de agente sugeridos pelos skills.
+> Rationale: superpowers itself declares "User's explicit instructions (CLAUDE.md) — highest priority". This section applies that priority over agent types suggested by skills.
 
-**Fluxo correto com superpowers:**
+**Correct flow with superpowers:**
 
-1. Skill identifica domínios independentes → principal mapeia cada um ao especialista da tabela
-2. Despacha com `subagent_type: "<especialista>"` no Agent tool
-3. Integra resultados normalmente
+1. Skill identifies independent domains → main maps each to the specialist from the table
+2. Dispatch with `subagent_type: "<specialist>"` in Agent tool
+3. Integrate results normally
 
 ## Architecture map
 
-CLI (`gitai`) que gera commits Convencionais via IA. Fluxo single-pass; sem estado em disco além de `~/.gitai`.
+CLI (`gitai`) that generates Conventional commits via AI. Single-pass flow; no on-disk state beyond `~/.gitai`.
 
-- `src/index.ts` — entrypoint Commander. Orquestra: carrega config (ou roda setup) → `chdir` p/ projeto-alvo → detecta mudanças → gera diff → pede mensagem à IA → commita → `git pull` → re-commita pós-pull → push opcional (`--push`).
-- `src/services/ai.ts` — `AIService`: única abstração sobre OpenAI/Groq/Anthropic. Expõe `generateCommitMessage()` e `generateReleaseNotes()`; concentra o prompt engineering. Consome `logger`.
-- `src/utils/git.ts` — toda interação git via `execa` (`runGitCommand`). `getDiffWithNewFiles()` faz staging antes do diff; `getDeletedFiles()`, detecção de conflito bilíngue (EN+PT), commit por arquivo temporário.
-- `src/utils/config.ts` — config global `~/.gitai` (mode `0o600`), parser key=value, campos LANGUAGE/PROVIDER/API_KEY/MODEL; `validateNodeVersion()` (Node ≥18).
-- `src/utils/setup.ts` — wizard interativo (`inquirer`); reusa valores existentes ao re-rodar.
-- `src/utils/language.ts` — `detectProjectLanguage()` + `printDetectedLanguage()` (passado à IA como contexto).
-- `src/utils/logger.ts` — logger `chalk`+emoji (header/success/info/warning/error/git/ai/commit). Única via de output ao usuário.
-- `src/releaser.ts` — CLI separado: release notes a partir do `git log` desde uma tag; usa variáveis de ambiente (`.env`), não `~/.gitai`; escreve `dist/release_<version>.md`.
-- `src/version.ts` — reexporta `name`/`version`/`engines` do package.json.
-- `scripts/release-flow.ts` — workflow de release automatizado (`tsx`); `scripts/verify_deleted_files_logic.ts` — script de verificação manual.
+- `src/index.ts` — Commander entrypoint. Orchestrates: loads config (or runs setup) → `chdir` to target project → detects changes → generates diff → requests commit message from AI → commits → `git pull` → re-commits post-pull → optional push (`--push`).
+- `src/services/ai.ts` — `AIService`: sole abstraction over OpenAI/Groq/Anthropic. Exposes `generateCommitMessage()` and `generateReleaseNotes()`; centralizes prompt engineering. Consumes `logger`.
+- `src/utils/git.ts` — all git interaction via `execa` (`runGitCommand`). `getDiffWithNewFiles()` stages before diff; `getDeletedFiles()`, bilingual conflict detection (EN+PT), commit via temp file.
+- `src/utils/config.ts` — global config `~/.gitai` (mode `0o600`), key=value parser, LANGUAGE/PROVIDER/API_KEY/MODEL fields; `validateNodeVersion()` (Node ≥18).
+- `src/utils/setup.ts` — interactive wizard (`inquirer`); reuses existing values on re-run.
+- `src/utils/language.ts` — `detectProjectLanguage()` + `printDetectedLanguage()` (passed to AI as context).
+- `src/utils/logger.ts` — `chalk`+emoji logger (header/success/info/warning/error/git/ai/commit). Sole output channel to the user.
+- `src/releaser.ts` — separate CLI: release notes from `git log` since a tag; uses environment variables (`.env`), not `~/.gitai`; writes `dist/release_<version>.md`.
+- `src/version.ts` — re-exports `name`/`version`/`engines` from package.json.
+- `scripts/release-flow.ts` — automated release workflow (`tsx`); `scripts/verify_deleted_files_logic.ts` — manual verification script.
 
 Domain-specific guidance lives in nested CLAUDE.md files (loaded on demand):
 
-- `src/services/` — camada de serviços de integração externa (clientes de IA)
+- `src/services/` — external integration services layer (AI clients)
 
 ## Conventions
 
-- **ESM puro** (`"type": "module"`): todo import relativo DEVE terminar em `.js`, mesmo apontando para fonte `.ts` (ex.: `import { logger } from './logger.js'`). Sem isso o runtime quebra.
-- **`process.exit(1)` em erro fatal é intencional** (regra eslint `no-process-exit` desligada) — é uma CLI. Erros vão para `logger.error` (chalk), não `throw` cru para o usuário.
-- **Novos provedores de IA** entram no `switch` de `AIService.initializeClient()` + tratamento por-provedor do request (modelos novos da OpenAI usam `max_completion_tokens` em vez de `max_tokens`).
-- **Git só via `runGitCommand()`** (`execa`, `reject:false`). Mensagem de commit é escrita em arquivo temporário (preserva caracteres especiais); detecção de status/conflito deve cobrir saída do git em inglês E português.
-- **Staging antes do diff**: `getDiffWithNewFiles()` roda `git add .` + `git diff --cached` para a IA enxergar arquivos novos; arquivos deletados vêm à parte por `getDeletedFiles()`.
-- **Conventional Commits estritos**: só os prefixos `feat`/`fix`/`docs`/`chore`, impostos pelo prompt em `getCommitSystemPrompt()`.
-- **Output ao usuário só pelo objeto `logger`** (`src/utils/logger.ts`) — nunca `console.log` cru em código novo.
+- **Pure ESM** (`"type": "module"`): every relative import MUST end in `.js`, even when pointing to a `.ts` source (e.g., `import { logger } from './logger.js'`). Without this the runtime breaks.
+- **`process.exit(1)` on fatal error is intentional** (eslint rule `no-process-exit` disabled) — this is a CLI. Errors go to `logger.error` (chalk), not raw `throw` to the user.
+- **New AI providers** enter the `switch` in `AIService.initializeClient()` + per-provider request handling (new OpenAI models use `max_completion_tokens` instead of `max_tokens`).
+- **Git only via `runGitCommand()`** (`execa`, `reject:false`). Commit message is written to a temp file (preserves special characters); status/conflict detection must cover git output in both English AND Portuguese.
+- **Staging before diff**: `getDiffWithNewFiles()` runs `git add .` + `git diff --cached` so AI sees new files; deleted files come separately via `getDeletedFiles()`.
+- **Strict Conventional Commits**: only `feat`/`fix`/`docs`/`chore` prefixes, enforced by the prompt in `getCommitSystemPrompt()`.
+- **User output only via the `logger` object** (`src/utils/logger.ts`) — never raw `console.log` in new code.
 
 ## Behavioral guidelines
 
