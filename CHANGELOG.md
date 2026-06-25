@@ -1,3 +1,21 @@
+# Release 1.1.1
+A polished maintenance release with clearer project rules, improved README visibility, and streamlined CI workflows.
+
+### New Features
+- docs: add npm total downloads badge to README (475b628)
+
+### Bug Fixes
+- chore: remove failing PM workflows (PROJECTS_PAT not configured) (bbc53d4)
+
+### Other Changes
+- chore(.claude): translate project rules to English, switch large-file guard to block (f21e50c)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.1.1](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.1.0...v1.1.1)
+
+---
+
 # Release 1.1.0
 This release brings flexible custom LLM provider support, improved Anthropic configuration handling, and a smoother setup wizard—plus stronger tooling, security, and release automation improvements.
 
