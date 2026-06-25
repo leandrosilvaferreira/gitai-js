@@ -170,17 +170,31 @@ BASE_URL=http://localhost:11434/v1
 
 `BASE_URL` in `~/.gitai` always takes priority over any environment variable.
 
-## 🔑 Anthropic Auth via Claude Settings
+## 🔑 Anthropic Authentication
 
-If you use [Claude Code](https://claude.ai/code), gitai automatically reads `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_BASE_URL` from your Claude settings — no manual configuration needed.
+> **Only applies when `PROVIDER=anthropic`.**
 
-Priority order (highest wins):
+Gitai supports two authentication methods for Anthropic — use whichever you have:
 
-1. `BASE_URL` in `~/.gitai`
+| Method                                  | Where it comes from                                          | When to use                |
+| --------------------------------------- | ------------------------------------------------------------ | -------------------------- |
+| **API key**                             | `API_KEY` in `~/.gitai`                                      | Standard Anthropic account |
+| **Auth token** (`ANTHROPIC_AUTH_TOKEN`) | `~/.claude/settings.json` or `~/.claude/settings.local.json` | Claude Code OAuth session  |
+
+The auth token is **never** stored in `~/.gitai`. It is read automatically from your Claude settings files when present.
+
+### BASE_URL priority (Anthropic provider)
+
+1. `BASE_URL` in `~/.gitai` ← highest priority
 2. `ANTHROPIC_BASE_URL` in `~/.claude/settings.local.json`
 3. `ANTHROPIC_BASE_URL` in `~/.claude/settings.json`
 
-The `authToken` (OAuth token used by Claude Code) is read from the same files and passed directly to the Anthropic SDK — it is **never** stored in `~/.gitai`.
+### ANTHROPIC_AUTH_TOKEN priority
+
+1. `ANTHROPIC_AUTH_TOKEN` in `~/.claude/settings.local.json` ← highest priority
+2. `ANTHROPIC_AUTH_TOKEN` in `~/.claude/settings.json`
+
+If neither claude settings file exists or neither contains `ANTHROPIC_AUTH_TOKEN`, gitai falls back to `API_KEY` from `~/.gitai`.
 
 ## 🚀 Using Gitai
 
@@ -497,17 +511,31 @@ BASE_URL=http://localhost:11434/v1
 
 `BASE_URL` em `~/.gitai` sempre tem prioridade sobre qualquer variável de ambiente.
 
-## 🔑 Autenticação Anthropic via Claude Settings
+## 🔑 Autenticação Anthropic
 
-Se você usa o [Claude Code](https://claude.ai/code), o gitai lê automaticamente `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_BASE_URL` das suas configurações do Claude — sem configuração manual necessária.
+> **Aplica-se somente quando `PROVIDER=anthropic`.**
 
-Ordem de prioridade (maior vence):
+O Gitai suporta dois métodos de autenticação para Anthropic — use o que você tiver disponível:
 
-1. `BASE_URL` em `~/.gitai`
+| Método                                             | De onde vem                                                  | Quando usar                 |
+| -------------------------------------------------- | ------------------------------------------------------------ | --------------------------- |
+| **Chave de API**                                   | `API_KEY` em `~/.gitai`                                      | Conta padrão Anthropic      |
+| **Token de autenticação** (`ANTHROPIC_AUTH_TOKEN`) | `~/.claude/settings.json` ou `~/.claude/settings.local.json` | Sessão OAuth do Claude Code |
+
+O token de autenticação **nunca** é armazenado em `~/.gitai`. Ele é lido automaticamente dos arquivos de configuração do Claude quando presente.
+
+### Prioridade do BASE_URL (provider Anthropic)
+
+1. `BASE_URL` em `~/.gitai` ← maior prioridade
 2. `ANTHROPIC_BASE_URL` em `~/.claude/settings.local.json`
 3. `ANTHROPIC_BASE_URL` em `~/.claude/settings.json`
 
-O `authToken` (token OAuth usado pelo Claude Code) é lido dos mesmos arquivos e passado diretamente ao SDK Anthropic — **nunca** é armazenado em `~/.gitai`.
+### Prioridade do ANTHROPIC_AUTH_TOKEN
+
+1. `ANTHROPIC_AUTH_TOKEN` em `~/.claude/settings.local.json` ← maior prioridade
+2. `ANTHROPIC_AUTH_TOKEN` em `~/.claude/settings.json`
+
+Se nenhum arquivo de configuração do Claude existir ou nenhum contiver `ANTHROPIC_AUTH_TOKEN`, o gitai usa `API_KEY` de `~/.gitai`.
 
 ## 🚀 Usando o Gitai
 
