@@ -1,4 +1,40 @@
-# .graphifyignore — gitignore syntax, merged with .gitignore (! negations win last).
+# .graphifyignore — gitignore syntax; seeded from project .gitignore + graphify extraction filters.
+# Dependencies
+node_modules/
+
+# Compilation Artifacts
+dist/
+
+# Environment Variables
+.env
+
+# OS Metadata
+.DS_Store
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+
+# IDE/Editor
+.idea/
+.vscode/
+*.swp
+# aia-harness
+.claude/settings.local.json
+.claude/*.local.*
+graphify-out/cost.json
+graphify-out/cache/
+graphify-out/
+
+# Local-only superpowers artifacts
+.superpowers/
+# aia-harness
+.claude/pm-config.json
+
 node_modules/
 dist/
 build/
@@ -9,3 +45,34 @@ coverage/
 .turbo/
 *.min.js
 *.generated.*
+
+# graphify extraction filters
+# Skip binary/media files from semantic extraction
+# (AST still processes code files normally)
+
+# Images — rendered separately, not needed for semantic
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.webp
+*.ico
+
+# PDFs — low signal-to-noise in semantic extraction
+*.pdf
+
+# Videos/audio — transcribed but usually verbose; filter at source if needed
+*.mp4
+*.mov
+*.mp3
+*.wav
+*.flac
+
+.claude/
+docs/
+.agents/
+.code-review-graph/
+.superpowers/
+
+*.md

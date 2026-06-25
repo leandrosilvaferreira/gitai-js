@@ -1,5 +1,6 @@
 {
   "model": "opusplan",
+  "defaultMode": "bypassPermissions",
   "env": {
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1"
@@ -8,15 +9,29 @@
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "permissions": {
-    "defaultMode": "bypassPermissions",
     "allow": [
+      "Bash(git add:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git commit:*)",
       "Bash(git diff:*)",
+      "Bash(git fetch:*)",
+      "Bash(git log:*)",
+      "Bash(git merge:*)",
+      "Bash(git pull:*)",
+      "Bash(git push:*)",
+      "Bash(git rebase:*)",
+      "Bash(git reset:*)",
+      "Bash(git stash:*)",
       "Bash(git status:*)",
+      "Bash(git switch:*)",
+      "Bash(git tag:*)",
       "Bash(npm install:*)",
       "Bash(npm run build:*)",
       "Bash(npm run dev:*)",
       "Bash(npm run format:*)",
       "Bash(npm run lint:*)",
+      "Bash(npm run test:*)",
       "Bash(npx tsc:*)"
     ],
     "deny": [
@@ -35,7 +50,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-main-branch.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-main-branch.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -46,19 +63,17 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.mjs"
+            ],
             "timeout": 10
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"],
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/block-lockfile.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -69,26 +84,10 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk-hook.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk-hook.mjs"
+            ],
             "timeout": 15
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "CMD=$(python3 -c \"import json,sys; d=json.load(sys.stdin); print(d.get('tool_input',d).get('command',''))\" 2>/dev/null || true); case \"$CMD\" in *grep*|*rg\\ *|*ripgrep*|*find\\ *|*fd\\ *|*ack\\ *|*ag\\ *)   [ -f graphify-out/graph.json ] &&   echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"MANDATORY: graphify-out/graph.json exists. You MUST run `graphify query \\\"<question>\\\"` before grepping raw files. Only grep after graphify has oriented you, or to modify/debug specific lines.\"}}'   || true ;; esac"
-          }
-        ]
-      },
-      {
-        "matcher": "Read|Glob",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "HIT=$(python3 -c \"import json,sys;d=json.load(sys.stdin);t=d.get('tool_input',d);s=(str(t.get('file_path') or '')+' '+str(t.get('pattern') or '')+' '+str(t.get('path') or '')).lower().replace(chr(92),'/');exts=('.py','.js','.ts','.tsx','.jsx','.go','.rs','.java','.rb','.c','.h','.cpp','.hpp','.cc','.cs','.kt','.swift','.php','.scala','.lua','.sh','.md','.rst','.txt','.mdx');sys.stdout.write('1' if 'graphify-out/' not in s and any(e in s for e in exts) else '')\" 2>/dev/null || true); if [ \"$HIT\" = 1 ] && [ -f graphify-out/graph.json ]; then echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"additionalContext\":\"MANDATORY: graphify-out/graph.json exists. You MUST run graphify before reading source files. Use: `graphify query \\\"<question>\\\"` (scoped subgraph), `graphify explain \\\"<concept>\\\"`, or `graphify path \\\"<A>\\\" \\\"<B>\\\"`. Only read raw files after graphify has oriented you, or to modify/debug specific lines. This rule applies to subagents too \u2014 include it in every subagent prompt involving code exploration.\"}}'; fi || true"
           }
         ]
       }
@@ -100,26 +99,39 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs"
+            ],
             "timeout": 60
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/set-files-changed.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/set-files-changed.mjs"
+            ],
             "timeout": 30
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/sql-idempotent-review.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/sql-idempotent-review.mjs"
+            ],
             "timeout": 10
-          },
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/run-related-test.mjs"],
-            "timeout": 90
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/large-file-warning.mjs"
+            ],
+            "timeout": 30
           }
         ]
       }
@@ -130,27 +142,31 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/check-deps-on-start.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-deps-on-start.mjs"
+            ],
             "timeout": 30
-          }
-        ]
-      },
-      {
-        "hooks": [
+          },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/caveman/caveman-activate.js"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-session-ctx.mjs"
+            ],
             "timeout": 10
           }
         ]
-      },
+      }
+    ],
+    "UserPromptSubmit": [
       {
         "hooks": [
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ponytail/ponytail-activate.js"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-prompt-ctx.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -162,7 +178,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-subagent-ctx.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-subagent-ctx.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -174,42 +192,18 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.mjs"
+            ],
             "timeout": 300
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-stop.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-stop.mjs"
+            ],
             "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/large-file-warning.mjs"],
-            "timeout": 30
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/caveman/caveman-mode-tracker.js"],
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/ponytail/ponytail-mode-tracker.js"],
-            "timeout": 10
           }
         ]
       }

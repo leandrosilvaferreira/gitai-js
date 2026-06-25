@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Worktree subagent context (SubagentStart). Fires before every subagent spawn.
+ * Worktree session context (SessionStart). Fires once when a session begins.
  *
- * Reads `event.cwd` — the parent session's current working directory when the
- * subagent is spawned. If the cwd is inside a git worktree
- * (`.claude/worktrees/<name>`), injects additionalContext so the subagent knows
- * it must read/write files inside the worktree path, not the project root.
+ * Reads `event.cwd` — the session's current working directory at start time.
+ * If the cwd is inside a git worktree (`.claude/worktrees/<name>`), injects
+ * additionalContext so the main session agent knows it must read/write files
+ * inside the worktree path, not the project root.
  *
  * Uses `event.cwd` directly (no state files needed): Claude Code propagates the
  * dynamic cwd into every hook event, so this hook is always current.
@@ -41,10 +41,11 @@ const m = cwd.match(/^(.+?\.claude[/\\]worktrees[/\\][^/\\]+)/);
 if (!m) process.exit(0);
 
 const wtPath = m[1];
-const rel = projectDir ? path.relative(projectDir, wtPath) : path.basename(wtPath);
 
 const additionalContext = [
-  `WORKTREE ACTIVE: this session is working inside the git worktree at "${wtPath}" (relative: "${rel}").`,
+  projectDir
+    ? `WORKTREE ACTIVE: this session is working inside the git worktree at "${wtPath}" (relative: "${path.relative(projectDir, wtPath)}").`
+    : `WORKTREE ACTIVE: this session is working inside the git worktree at "${wtPath}".`,
   `All file reads, writes, and edits MUST target paths inside "${wtPath}".`,
   ...(projectDir
     ? [
@@ -56,7 +57,7 @@ const additionalContext = [
 
 process.stdout.write(
   JSON.stringify({
-    hookSpecificOutput: { hookEventName: "SubagentStart", additionalContext },
+    hookSpecificOutput: { hookEventName: "SessionStart", additionalContext },
   }),
 );
 
