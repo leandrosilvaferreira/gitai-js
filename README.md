@@ -176,10 +176,10 @@ BASE_URL=http://localhost:11434/v1
 
 Gitai supports two authentication methods for Anthropic — use whichever you have:
 
-| Method                                  | Where it comes from                                          | When to use                |
-| --------------------------------------- | ------------------------------------------------------------ | -------------------------- |
-| **API key**                             | `API_KEY` in `~/.gitai`                                      | Standard Anthropic account |
-| **Auth token** (`ANTHROPIC_AUTH_TOKEN`) | `~/.claude/settings.json` or `~/.claude/settings.local.json` | Claude Code OAuth session  |
+| Method                                  | Where it comes from                                          | When to use                            |
+| --------------------------------------- | ------------------------------------------------------------ | -------------------------------------- |
+| **API key**                             | `API_KEY` in `~/.gitai`                                      | Standard Anthropic account             |
+| **Auth token** (`ANTHROPIC_AUTH_TOKEN`) | `~/.claude/settings.json` or `~/.claude/settings.local.json` | When set in Claude Code's `env` config |
 
 The auth token is **never** stored in `~/.gitai`. It is read automatically from your Claude settings files when present.
 
@@ -517,10 +517,10 @@ BASE_URL=http://localhost:11434/v1
 
 O Gitai suporta dois métodos de autenticação para Anthropic — use o que você tiver disponível:
 
-| Método                                             | De onde vem                                                  | Quando usar                 |
-| -------------------------------------------------- | ------------------------------------------------------------ | --------------------------- |
-| **Chave de API**                                   | `API_KEY` em `~/.gitai`                                      | Conta padrão Anthropic      |
-| **Token de autenticação** (`ANTHROPIC_AUTH_TOKEN`) | `~/.claude/settings.json` ou `~/.claude/settings.local.json` | Sessão OAuth do Claude Code |
+| Método                                             | De onde vem                                                  | Quando usar                                      |
+| -------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------ |
+| **Chave de API**                                   | `API_KEY` em `~/.gitai`                                      | Conta padrão Anthropic                           |
+| **Token de autenticação** (`ANTHROPIC_AUTH_TOKEN`) | `~/.claude/settings.json` ou `~/.claude/settings.local.json` | Quando configurado no campo `env` do Claude Code |
 
 O token de autenticação **nunca** é armazenado em `~/.gitai`. Ele é lido automaticamente dos arquivos de configuração do Claude quando presente.
 
