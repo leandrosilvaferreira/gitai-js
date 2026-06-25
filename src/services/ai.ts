@@ -8,6 +8,8 @@ interface AIConfig {
   model: string;
   apiKey: string;
   language: string;
+  baseURL?: string;
+  authToken?: string;
 }
 
 // Reasoning models (o1, o3, gpt-5 family) reject temperature/top_p/frequency_penalty/presence_penalty
@@ -29,13 +31,23 @@ export class AIService {
   private initializeClient() {
     switch (this.config.provider) {
       case 'openai':
-        this.openai = new OpenAI({ apiKey: this.config.apiKey });
+        this.openai = new OpenAI({
+          apiKey: this.config.apiKey,
+          ...(this.config.baseURL ? { baseURL: this.config.baseURL } : {}),
+        });
         break;
       case 'groq':
-        this.groq = new Groq({ apiKey: this.config.apiKey });
+        this.groq = new Groq({
+          apiKey: this.config.apiKey,
+          ...(this.config.baseURL ? { baseURL: this.config.baseURL } : {}),
+        });
         break;
       case 'anthropic':
-        this.anthropic = new Anthropic({ apiKey: this.config.apiKey });
+        this.anthropic = new Anthropic({
+          ...(this.config.apiKey ? { apiKey: this.config.apiKey } : {}),
+          ...(this.config.authToken ? { authToken: this.config.authToken } : {}),
+          ...(this.config.baseURL ? { baseURL: this.config.baseURL } : {}),
+        });
         break;
       default:
         logger.error(`Provider ${this.config.provider} is not supported.`);
