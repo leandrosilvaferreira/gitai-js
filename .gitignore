@@ -31,3 +31,5 @@ graphify-out/
 
 # Local-only superpowers artifacts
 .superpowers/
+# aia-harness
+.claude/pm-config.json

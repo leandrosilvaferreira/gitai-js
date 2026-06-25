@@ -4,14 +4,14 @@ Scope: services layer (layer).
 
 ## Responsibility
 
-Classes de serviço que falam com integrações externas. Hoje contém só `ai.ts` — a classe `AIService`, única abstração sobre os três provedores de IA (OpenAI, Groq, Anthropic), expondo `generateCommitMessage()` e `generateReleaseNotes()` e concentrando todo o prompt engineering. Aqui NÃO mora: lógica de git/subprocess (fica em `src/utils/git.ts`), orquestração da CLI (`src/index.ts`), nem leitura de config/IO (`src/utils/`). Serviços retornam strings ao chamador; quem aplica no git é o `index.ts`.
+Service classes that communicate with external integrations. Currently contains only `ai.ts` — the `AIService` class, the single abstraction over three AI providers (OpenAI, Groq, Anthropic), exposing `generateCommitMessage()` and `generateReleaseNotes()` and centralizing all prompt engineering. What does NOT belong here: git/subprocess logic (lives in `src/utils/git.ts`), CLI orchestration (`src/index.ts`), or config/IO reading (`src/utils/`). Services return strings to the caller; `index.ts` is responsible for applying them to git.
 
 ## Local conventions
 
-- Um serviço = uma classe (`AIService`), construída com um objeto de config tipado (`AIConfig`); clientes de provedor são criados sob demanda em `initializeClient()` via `switch (provider)`.
-- Prompts centralizados em métodos privados `get*SystemPrompt()` que retornam template string `.trim()` — mantenha o prompt aqui, não inline no call site.
-- Diferenças de parâmetro entre provedores tratadas por branch (ex.: `max_completion_tokens` vs `max_tokens`); provedor não suportado → `logger.error` + `process.exit(1)`.
-- Importe o `logger` compartilhado de `../utils/logger.js` (extensão `.js` ESM); nunca `console` cru.
+- One service = one class (`AIService`), built with a typed config object (`AIConfig`); provider clients are created on demand in `initializeClient()` via `switch (provider)`.
+- Prompts centralized in private `get*SystemPrompt()` methods that return `.trim()` template strings — keep prompts here, not inline at the call site.
+- Provider parameter differences handled by branch (e.g., `max_completion_tokens` vs `max_tokens`); unsupported provider → `logger.error` + `process.exit(1)`.
+- Import the shared `logger` from `../utils/logger.js` (`.js` ESM extension required); never raw `console`.
 
 ## Rules
 

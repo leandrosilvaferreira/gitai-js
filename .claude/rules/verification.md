@@ -1,12 +1,10 @@
 ---
 paths:
-  - '**/*'
+  - "**/*"
 ---
-
 # Verification before completion
 
 Before claiming a task is done:
-
 - Typecheck: `npx tsc --noEmit`
 - Lint: `npm run lint`
 - Test: `npm run test`

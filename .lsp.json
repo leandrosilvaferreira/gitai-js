@@ -1,0 +1,13 @@
+{
+  "lspServers": {
+    "typescript": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "typescript-language-server",
+        "--stdio"
+      ]
+    }
+  }
+}

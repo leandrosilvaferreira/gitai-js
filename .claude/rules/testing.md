@@ -8,4 +8,4 @@ For every new function, class, or module added:
 - Write at least one unit test covering the happy path.
 - Write edge-case tests for non-trivial logic.
 - Use the project's existing test framework and conventions.
-- Run the project's test command before claiming done.
+- Run `npm run test` before claiming done.
