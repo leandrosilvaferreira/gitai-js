@@ -1,3 +1,35 @@
+# Release 1.1.0
+This release brings flexible custom LLM provider support, improved Anthropic configuration handling, and a smoother setup wizard—plus stronger tooling, security, and release automation improvements.
+
+### New Features
+- Support custom LLM endpoints with baseURL and authToken in AIService (fb241a9).
+- Add optional BASE_URL field to AppConfig and ensure undefined fields are omitted when saving config (1ec1ce0).
+- Add optional custom BASE_URL prompt to the setup wizard (9befe2f).
+- Add readClaudeSettings utility to read Anthropic settings from ~/.claude/settings.json and settings.local.json (8ba4b89).
+- Wire readClaudeSettings into AIService to support ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN from Claude settings files (9e4b44d).
+- Add guided AI provider onboarding via add-provider skill (f62c2bc).
+
+### Bug Fixes
+- Prevent command injection in run-related-test hook by using execFileSync (0ae8b71).
+- Resolve tsx via local node_modules/.bin in run-related-test hook (92e1304).
+- Use npm pkg get version in release skill for ESM compatibility (288f8be).
+- Correct branch check wording in release skill (master also accepted) (beb5354).
+
+### Other Changes
+- Add and refine documentation for custom LLM providers, .gitai.example, and Anthropic Claude auth/settings (EN + PT) (afea2b1, fab26db, 9fc2402).
+- Upgrade verify-on-stop hook to strict blocking mode (5276be3).
+- Update aia-harness tooling and add GitHub PM workflows (09b51f0).
+- Add GitHub issue and PR templates (2381037).
+- Add GitHub PM commands, config, and skills (d073db8).
+- Add SDD task artifacts and security fix documentation updates (962e123, f53f29d).
+- Add test step to verification rule (5e33258).
+- Adjust ESLint configuration and ignores (3d16700, d5a36ec).
+- Add run-related-test hook for automatic test execution on test file edits (a511662).
+- Add block-lockfile hook to prevent direct lock file edits (ebce7f7).
+- Add release skill and release-validator agent for guided pre-release checks (121f346,
+
+---
+
 # Release 1.0.10
 This release modernizes the CI pipeline, upgrades to Node 24, and streamlines maintenance and permissions for a smoother development and release workflow.
 
