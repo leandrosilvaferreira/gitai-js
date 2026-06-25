@@ -103,8 +103,9 @@ The wizard will guide you through:
 2. **Provider Selection**: Choose between OpenAI, Groq, or Anthropic
 3. **API Key**: Enter your API key for the selected provider
 4. **Model Selection**: Choose the AI model to use (e.g., `gpt-5.2`, `llama-3.3-70b-versatile`, `claude-sonnet-4-5-20250929`)
+5. **Custom Base URL** _(optional)_: Point gitai at a custom OpenAI-compatible endpoint (Ollama, LiteLLM, Together AI, etc.) — press Enter to skip
 
-Your configuration is saved globally in `~/.gitai`, so you don't need to configure it for every project.
+Your configuration is saved globally in `~/.gitai`, so you don't need to configure it for every project. A template with all available options is available in [`.gitai.example`](.gitai.example).
 
 ### Example configuration for OpenAI
 
@@ -132,6 +133,54 @@ API_KEY=your_anthropic_api_key
 MODEL=claude-sonnet-4-5-20250929
 LANGUAGE=en
 ```
+
+### Example configuration with a custom base URL (any OpenAI-compatible provider)
+
+```dotenv
+PROVIDER=openai
+API_KEY=ollama
+MODEL=llama3.2
+LANGUAGE=en
+BASE_URL=http://localhost:11434/v1
+```
+
+## 🔌 Custom LLM Providers
+
+Gitai supports any **OpenAI-compatible endpoint** via the optional `BASE_URL` configuration field. This lets you run commits using local models (Ollama), hosted proxies (LiteLLM), or third-party APIs (Together AI, Fireworks, Anyscale, etc.) — without installing any new packages.
+
+Set `PROVIDER=openai` and point `BASE_URL` at your endpoint:
+
+| Provider                                | BASE_URL example                        |
+| --------------------------------------- | --------------------------------------- |
+| [Ollama](https://ollama.com/) (local)   | `http://localhost:11434/v1`             |
+| [LiteLLM](https://litellm.ai/)          | `http://localhost:4000/v1`              |
+| [Together AI](https://www.together.ai/) | `https://api.together.xyz/v1`           |
+| [Fireworks AI](https://fireworks.ai/)   | `https://api.fireworks.ai/inference/v1` |
+| Any OpenAI-compatible proxy             | `https://your-proxy.example.com/v1`     |
+
+**Ollama example** — run `llama3.2` locally, zero cloud cost:
+
+```dotenv
+PROVIDER=openai
+API_KEY=ollama
+MODEL=llama3.2
+LANGUAGE=en
+BASE_URL=http://localhost:11434/v1
+```
+
+`BASE_URL` in `~/.gitai` always takes priority over any environment variable.
+
+## 🔑 Anthropic Auth via Claude Settings
+
+If you use [Claude Code](https://claude.ai/code), gitai automatically reads `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_BASE_URL` from your Claude settings — no manual configuration needed.
+
+Priority order (highest wins):
+
+1. `BASE_URL` in `~/.gitai`
+2. `ANTHROPIC_BASE_URL` in `~/.claude/settings.local.json`
+3. `ANTHROPIC_BASE_URL` in `~/.claude/settings.json`
+
+The `authToken` (OAuth token used by Claude Code) is read from the same files and passed directly to the Anthropic SDK — it is **never** stored in `~/.gitai`.
 
 ## 🚀 Using Gitai
 
@@ -381,8 +430,9 @@ O assistente irá guiá-lo através de:
 2. **Seleção de Provedor**: Escolha entre OpenAI, Groq ou Anthropic
 3. **Chave de API**: Insira sua chave de API para o provedor selecionado
 4. **Seleção de Modelo**: Escolha o modelo de IA a ser usado (ex: `gpt-5.2`, `llama-3.3-70b-versatile`, `claude-sonnet-4-5-20250929`)
+5. **URL Base customizada** _(opcional)_: Aponte o gitai para um endpoint compatível com OpenAI (Ollama, LiteLLM, Together AI, etc.) — pressione Enter para pular
 
-Sua configuração é salva globalmente em `~/.gitai`, então você não precisa configurá-la para cada projeto.
+Sua configuração é salva globalmente em `~/.gitai`, então você não precisa configurá-la para cada projeto. Um modelo com todas as opções disponíveis está em [`.gitai.example`](.gitai.example).
 
 ### Exemplo de configuração para OpenAI
 
@@ -410,6 +460,54 @@ API_KEY=your_anthropic_api_key
 MODEL=claude-sonnet-4-5-20250929
 LANGUAGE=en
 ```
+
+### Exemplo de configuração com URL base customizada (qualquer provedor compatível com OpenAI)
+
+```dotenv
+PROVIDER=openai
+API_KEY=ollama
+MODEL=llama3.2
+LANGUAGE=en
+BASE_URL=http://localhost:11434/v1
+```
+
+## 🔌 Provedores LLM Customizados
+
+O Gitai suporta qualquer **endpoint compatível com OpenAI** via campo opcional `BASE_URL`. Isso permite executar commits usando modelos locais (Ollama), proxies hospedados (LiteLLM) ou APIs de terceiros (Together AI, Fireworks, etc.) — sem instalar novos pacotes.
+
+Configure `PROVIDER=openai` e aponte `BASE_URL` para o seu endpoint:
+
+| Provedor                                | Exemplo de BASE_URL                     |
+| --------------------------------------- | --------------------------------------- |
+| [Ollama](https://ollama.com/) (local)   | `http://localhost:11434/v1`             |
+| [LiteLLM](https://litellm.ai/)          | `http://localhost:4000/v1`              |
+| [Together AI](https://www.together.ai/) | `https://api.together.xyz/v1`           |
+| [Fireworks AI](https://fireworks.ai/)   | `https://api.fireworks.ai/inference/v1` |
+| Qualquer proxy compatível com OpenAI    | `https://seu-proxy.exemplo.com/v1`      |
+
+**Exemplo com Ollama** — execute `llama3.2` localmente, sem custo de nuvem:
+
+```dotenv
+PROVIDER=openai
+API_KEY=ollama
+MODEL=llama3.2
+LANGUAGE=en
+BASE_URL=http://localhost:11434/v1
+```
+
+`BASE_URL` em `~/.gitai` sempre tem prioridade sobre qualquer variável de ambiente.
+
+## 🔑 Autenticação Anthropic via Claude Settings
+
+Se você usa o [Claude Code](https://claude.ai/code), o gitai lê automaticamente `ANTHROPIC_AUTH_TOKEN` e `ANTHROPIC_BASE_URL` das suas configurações do Claude — sem configuração manual necessária.
+
+Ordem de prioridade (maior vence):
+
+1. `BASE_URL` em `~/.gitai`
+2. `ANTHROPIC_BASE_URL` em `~/.claude/settings.local.json`
+3. `ANTHROPIC_BASE_URL` em `~/.claude/settings.json`
+
+O `authToken` (token OAuth usado pelo Claude Code) é lido dos mesmos arquivos e passado diretamente ao SDK Anthropic — **nunca** é armazenado em `~/.gitai`.
 
 ## 🚀 Usando o Gitai
 
