@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { execa } from 'execa';
 
@@ -50,6 +51,24 @@ test('runGitCommand returns exitCode 0 and defined stdout for git status in vali
     const result = await runGitCommand(['status'], dir, false);
     assert.equal(result.exitCode, 0, 'Expected exitCode 0 for git status');
     assert.ok(result.stdout !== undefined, 'Expected stdout to be defined');
+  } finally {
+    cleanupTmpRepo(dir);
+  }
+});
+
+test('runGitCommand with default exitOnError=true calls process.exit(1) on an invalid git command', async () => {
+  const dir = await makeTmpRepo();
+  try {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const gitModuleUrl = pathToFileURL(path.join(currentDir, 'git.ts')).href;
+    const code = `import { runGitCommand } from '${gitModuleUrl}'; await runGitCommand(['this-is-not-a-real-git-command'], process.cwd());`;
+
+    const result = await execa('node', ['--import', 'tsx', '--input-type=module', '--eval', code], {
+      cwd: dir,
+      reject: false,
+    });
+
+    assert.equal(result.exitCode, 1);
   } finally {
     cleanupTmpRepo(dir);
   }
