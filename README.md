@@ -673,7 +673,7 @@ Se você tiver alguma dúvida ou problema, por favor, abra uma issue. Faremos o 
 
 ## 📨 Contato
 
-Se você quiser entrar em contato com os mantenedores do projeto, por favor, envie um e-mail para: [leandro@notyped.com](mailto:leandro@notyped.com)
+Se você quiser entrar em contato com os mantenedores do projeto, por favor, envie um e-mail para: [leandrosilvaferreira@gmail.com](mailto:leandrosilvaferreira@gmail.com)
 
 Obrigado por seu interesse em nosso projeto. Estamos ansiosos para ver suas contribuições!
 
