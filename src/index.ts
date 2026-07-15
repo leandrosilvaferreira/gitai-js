@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import chalk from 'chalk';
 import { Command } from 'commander';
+import inquirer from 'inquirer';
 import path from 'path';
 
 import { AIService } from './services/ai.js';
@@ -9,10 +10,10 @@ import {
   commitChanges,
   getDeletedFiles,
   getDiffWithNewFiles,
+  getSyncStatus,
   hasUncommittedChanges,
-  isBranchAhead,
-  performGitPull,
   runGitCommand,
+  syncWithRemote,
 } from './utils/git.js';
 import { detectProjectLanguage, printDetectedLanguage } from './utils/language.js';
 import { logger } from './utils/logger.js';
@@ -30,6 +31,41 @@ if (!validateNodeVersion()) {
   console.error(chalk.red(`\n❌  GitAI requires Node.js ${engines.node} or higher.`));
   console.error(chalk.yellow(`   Current version: ${process.version}\n`));
   process.exit(1);
+}
+
+async function confirmAutoMerge(projectPath: string): Promise<boolean> {
+  if (!process.stdin.isTTY) {
+    logger.warning('Non-interactive session: cannot ask for merge confirmation. Skipping merge.');
+    return false;
+  }
+
+  const { stdout: localLog } = await runGitCommand(
+    ['log', '--oneline', '@{u}..HEAD'],
+    projectPath,
+    false
+  );
+  const { stdout: remoteLog } = await runGitCommand(
+    ['log', '--oneline', 'HEAD..@{u}'],
+    projectPath,
+    false
+  );
+
+  logger.info('Local commits not on remote:');
+  logger.info(localLog || '(none)');
+  logger.info('Remote commits not local:');
+  logger.info(remoteLog || '(none)');
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const answers: any = await inquirer.prompt([
+    {
+      type: 'confirm',
+      name: 'proceed',
+      message: 'Attempt an automatic merge?',
+      default: true,
+    },
+  ]);
+
+  return Boolean(answers.proceed);
 }
 
 const program = new Command();
@@ -159,41 +195,28 @@ program
       logger.info('No local changes to commit before git pull.');
     }
 
-    // 3. Perform Git Pull
-    const pullSuccessful = await performGitPull(projectPath);
+    // 3. Sync with remote (fetch, then fast-forward or confirmed merge)
+    const syncResult = await syncWithRemote(projectPath, () => confirmAutoMerge(projectPath));
 
-    if (!pullSuccessful) {
-      logger.error('Git pull failed due to conflicts. Please resolve the conflicts manually.');
+    if (syncResult === 'conflict') {
       process.exit(1);
     }
 
-    // 4. Check for conflicts/changes after pull
-    if (await hasUncommittedChanges(projectPath)) {
-      logger.warning('Conflicts or uncommitted changes detected after pull.');
-
-      const projectLanguage = await detectProjectLanguage(projectPath);
-      printDetectedLanguage(projectLanguage);
-
-      const diffOutput = await getDiffWithNewFiles(projectPath);
-      const deletedFiles = await getDeletedFiles(projectPath);
-
-      const commitMessage = await aiService.generateCommitMessage(
-        diffOutput,
-        deletedFiles,
-        projectLanguage,
-        'Resolving conflicts after git pull'
-      );
-      logger.commit(commitMessage);
-
-      await commitChanges(commitMessage, projectPath);
-      logger.success('Gitai successfully committed changes after pull.');
-    } else {
-      logger.info('No changes to commit after git pull.');
+    if (syncResult === 'declined') {
+      process.exit(0);
     }
 
-    // 5. Push if requested
+    // 4. Push if requested — re-check the remote first (it may have moved again)
     if (options.push) {
-      if (await isBranchAhead(projectPath)) {
+      await runGitCommand(['fetch'], projectPath);
+      const prePushStatus = await getSyncStatus(projectPath);
+
+      if (prePushStatus.behind > 0) {
+        logger.error('Remote branch changed again since the pull. Please run gitai again.');
+        process.exit(1);
+      }
+
+      if (prePushStatus.ahead > 0) {
         await runGitCommand(['push'], projectPath);
         logger.success('Gitai successfully pushed changes.');
       } else {

@@ -41,33 +41,6 @@ export async function hasUncommittedChanges(cwd: string): Promise<boolean> {
   return stdout.length > 0;
 }
 
-export async function isBranchAhead(cwd: string): Promise<boolean> {
-  const { stdout } = await runGitCommand(['status', '-uno'], cwd);
-  return stdout.includes('Your branch is ahead') || stdout.includes('Seu branch está à frente');
-}
-
-export async function performGitPull(cwd: string): Promise<boolean> {
-  const { stdout, stderr, exitCode } = await runGitCommand(['pull'], cwd, false);
-
-  if (exitCode !== 0) {
-    if (
-      stdout.includes('CONFLICT') ||
-      stdout.includes('CONFLITO') ||
-      stderr.includes('CONFLICT') ||
-      stderr.includes('CONFLITO')
-    ) {
-      logger.warning('Conflitos detectados durante git pull:');
-      logger.error(stdout || stderr);
-      return false;
-    } else {
-      logger.error(`Error executing git pull: ${stdout || stderr}`);
-      process.exit(1);
-    }
-  }
-  logger.success('Git pull executed successfully.');
-  return true;
-}
-
 export async function commitChanges(commitMessage: string, cwd: string): Promise<void> {
   await runGitCommand(['add', '.'], cwd);
 
