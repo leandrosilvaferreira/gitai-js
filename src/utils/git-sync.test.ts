@@ -3,6 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { test } from 'node:test';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import { execa } from 'execa';
 
@@ -13,6 +14,7 @@ import {
   finalizeMerge,
   getSyncStatus,
   runGitCommand,
+  syncWithRemote,
 } from './git.js';
 
 // ---------------------------------------------------------------------------
@@ -278,6 +280,170 @@ test('abortMerge restores a clean tree and preserves the local commit after a co
 
     const { stdout: log } = await execa('git', ['log', '--oneline'], { cwd: localDir });
     assert.ok(log.includes('chore: local edit'), 'Expected the local commit to still exist');
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// syncWithRemote
+// ---------------------------------------------------------------------------
+
+function alwaysConfirm(): Promise<boolean> {
+  return Promise.resolve(true);
+}
+
+function neverConfirm(): Promise<boolean> {
+  return Promise.resolve(false);
+}
+
+test('syncWithRemote returns up-to-date when local already matches remote', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    const result = await syncWithRemote(localDir, alwaysConfirm);
+    assert.equal(result, 'up-to-date');
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('syncWithRemote returns no-upstream when the branch has no upstream configured', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'gitai-noupstream-'));
+  try {
+    await execa('git', ['init', '--initial-branch=main'], { cwd: dir });
+    await execa('git', ['config', 'user.email', 'test@test.com'], { cwd: dir });
+    await execa('git', ['config', 'user.name', 'Test'], { cwd: dir });
+    fs.writeFileSync(path.join(dir, 'file.txt'), 'content');
+    await execa('git', ['add', '.'], { cwd: dir });
+    await execa('git', ['commit', '-m', 'chore: initial'], { cwd: dir });
+
+    const result = await syncWithRemote(dir, alwaysConfirm);
+    assert.equal(result, 'no-upstream');
+  } finally {
+    cleanupDirs(dir);
+  }
+});
+
+test('syncWithRemote fast-forwards automatically when only behind, without asking to confirm', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'remote-file.txt'), 'remote change');
+    await execa('git', ['add', '.'], { cwd: otherCloneDir });
+    await execa('git', ['commit', '-m', 'chore: remote change'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    let wasAsked = false;
+    const confirmSpy = () => {
+      wasAsked = true;
+      return Promise.resolve(true);
+    };
+
+    const result = await syncWithRemote(localDir, confirmSpy);
+
+    assert.equal(result, 'fast-forwarded');
+    assert.equal(wasAsked, false, 'Fast-forward must not ask for confirmation');
+    assert.equal(fs.existsSync(path.join(localDir, 'remote-file.txt')), true);
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('syncWithRemote merges and returns merged when diverged and the user confirms', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'remote-file.txt'), 'remote change');
+    await execa('git', ['add', '.'], { cwd: otherCloneDir });
+    await execa('git', ['commit', '-m', 'chore: remote change'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'local-file.txt'), 'local change');
+    await execa('git', ['add', '.'], { cwd: localDir });
+    await execa('git', ['commit', '-m', 'chore: local change'], { cwd: localDir });
+
+    const result = await syncWithRemote(localDir, alwaysConfirm);
+
+    assert.equal(result, 'merged');
+    assert.equal(fs.existsSync(path.join(localDir, 'local-file.txt')), true);
+    assert.equal(fs.existsSync(path.join(localDir, 'remote-file.txt')), true);
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('syncWithRemote returns declined and changes nothing when diverged and the user declines', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'remote-file.txt'), 'remote change');
+    await execa('git', ['add', '.'], { cwd: otherCloneDir });
+    await execa('git', ['commit', '-m', 'chore: remote change'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'local-file.txt'), 'local change');
+    await execa('git', ['add', '.'], { cwd: localDir });
+    await execa('git', ['commit', '-m', 'chore: local change'], { cwd: localDir });
+
+    const result = await syncWithRemote(localDir, neverConfirm);
+
+    assert.equal(result, 'declined');
+    assert.equal(fs.existsSync(path.join(localDir, 'remote-file.txt')), false);
+
+    const status = await execa('git', ['status', '--porcelain'], { cwd: localDir });
+    assert.equal(
+      status.stdout,
+      '',
+      'Expected a clean tree — decline must not leave a partial merge'
+    );
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('syncWithRemote aborts and returns conflict when diverged with an unresolvable conflict, preserving the local file', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'README.md'), 'remote change\n');
+    await execa('git', ['commit', '-am', 'chore: remote edit'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'README.md'), 'local change\n');
+    await execa('git', ['commit', '-am', 'chore: local edit'], { cwd: localDir });
+
+    const result = await syncWithRemote(localDir, alwaysConfirm);
+
+    assert.equal(result, 'conflict');
+
+    const content = fs.readFileSync(path.join(localDir, 'README.md'), 'utf-8');
+    assert.equal(content, 'local change\n', 'Expected the local edit to survive the aborted merge');
+
+    const status = await execa('git', ['status', '--porcelain'], { cwd: localDir });
+    assert.equal(status.stdout, '', 'Expected a clean tree after the automatic abort');
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('syncWithRemote exits the process when a fast-forward fails unexpectedly', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'remote-file.txt'), 'remote change');
+    await execa('git', ['add', '.'], { cwd: otherCloneDir });
+    await execa('git', ['commit', '-m', 'chore: remote change'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    // An untracked file with the same name the incoming fast-forward would create
+    // makes `git merge --ff-only` fail even though behind>0/ahead=0.
+    fs.writeFileSync(path.join(localDir, 'remote-file.txt'), 'untracked local collision');
+
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const gitModuleUrl = pathToFileURL(path.join(currentDir, 'git.ts')).href;
+    const code = `import { syncWithRemote } from '${gitModuleUrl}'; await syncWithRemote(process.cwd(), async () => true);`;
+
+    const result = await execa('node', ['--import', 'tsx', '--input-type=module', '--eval', code], {
+      cwd: localDir,
+      reject: false,
+    });
+
+    assert.equal(result.exitCode, 1);
   } finally {
     cleanupDirs(remoteDir, localDir, otherCloneDir);
   }

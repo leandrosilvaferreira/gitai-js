@@ -165,3 +165,65 @@ export async function abortMerge(cwd: string): Promise<void> {
 export async function finalizeMerge(cwd: string): Promise<void> {
   await runGitCommand(['commit', '--no-edit'], cwd);
 }
+
+export type SyncResult =
+  | 'up-to-date'
+  | 'fast-forwarded'
+  | 'merged'
+  | 'declined'
+  | 'conflict'
+  | 'no-upstream';
+
+export async function syncWithRemote(
+  cwd: string,
+  confirmMerge: () => Promise<boolean>
+): Promise<SyncResult> {
+  await runGitCommand(['fetch'], cwd);
+
+  const status = await getSyncStatus(cwd);
+
+  if (!status.hasUpstream) {
+    logger.info('No upstream branch configured — skipping remote sync check.');
+    return 'no-upstream';
+  }
+
+  if (status.behind === 0) {
+    return 'up-to-date';
+  }
+
+  if (status.ahead === 0) {
+    logger.info(`Remote branch has ${status.behind} new commit(s). Fast-forwarding...`);
+    const fastForwarded = await fastForwardPull(cwd);
+    if (!fastForwarded) {
+      logger.error(
+        'Fast-forward failed unexpectedly. Check for untracked files that would be overwritten, then retry.'
+      );
+      process.exit(1);
+    }
+    logger.success('Fast-forwarded to the latest remote commit(s).');
+    return 'fast-forwarded';
+  }
+
+  logger.warning(
+    `Local and remote branches diverged: ${status.ahead} local commit(s), ${status.behind} remote commit(s).`
+  );
+
+  const shouldMerge = await confirmMerge();
+
+  if (!shouldMerge) {
+    logger.info('Automatic merge declined. Nothing was changed.');
+    return 'declined';
+  }
+
+  const attempt = await attemptAutoMerge(cwd);
+
+  if (attempt.status === 'conflict') {
+    await abortMerge(cwd);
+    logger.error(`Merge conflict in: ${attempt.files.join(', ')}. Merge aborted, nothing changed.`);
+    return 'conflict';
+  }
+
+  await finalizeMerge(cwd);
+  logger.success('Automatic merge completed.');
+  return 'merged';
+}
