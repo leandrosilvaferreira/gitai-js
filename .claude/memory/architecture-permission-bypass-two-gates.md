@@ -1,0 +1,12 @@
+---
+name: permission-bypass-two-gates
+description: Claude Code bypassPermissions needs two separate config surfaces to actually activate — project settings.json alone silently downgrades to ask-mode
+metadata:
+  type: architecture
+---
+
+`permissions.defaultMode: "bypassPermissions"` in `.claude/settings.json` is only a request. The VS Code/editor extension has a separate gate — `claudeCode.allowDangerouslySkipPermissions` (IDE-level config, default `false`) — read via `getAllowDangerouslySkipPermissions()` inside the shipped `extension.js`. If that IDE flag is off, the resolved mode silently falls back to `"default"` (ask on everything), even though the project file says `bypassPermissions`. Confirmed against official docs (code.claude.com/docs/en/vs-code): "extension settings" (VS Code settings menu, `claudeCode.*` namespace) and "Claude Code settings" (`~/.claude/settings.json` / `.claude/settings.json`, shared with the CLI) are two distinct surfaces.
+
+**Why:** found by grepping the minified `extension.js` of the installed Claude Code VS Code extension (`~/.antigravity-ide/extensions/anthropic.claude-code-<ver>/`, schema at `claude-code-settings.schema.json`) after the project's `.claude/settings.json` fix alone didn't stop permission prompts. Also: subagents inherit permission mode from their parent session at spawn time and can't be overridden per-subagent — a mid-session settings.json edit doesn't retroactively apply to an already-running session or its already-spawned subagents; a session/window restart is needed.
+
+**How to apply:** to get `bypassPermissions` actually working end-to-end in this repo, both `.claude/settings.json` (`permissions.defaultMode: "bypassPermissions"`) AND the editor-level `claudeCode.allowDangerouslySkipPermissions: true` must be set. In this repo that second flag lives in `.vscode/settings.json`, intentionally force-committed past the `.vscode/` `.gitignore` rule (2026-07-15, explicit user decision, `git add -f`) — this ships bypass-by-default to anyone who opens the repo in a Claude-Code-enabled editor, a known and accepted tradeoff, not an oversight. `claudeCode.initialPermissionMode` controls which mode _new_ sessions start in. The gentler alternative is `permissions.defaultMode: "auto"` (a model classifier judges each tool call, no IDE gate required) — prefer it over full bypass when the actual goal is killing prompt spam for routine subagent commands rather than genuine unattended CI/container execution.
