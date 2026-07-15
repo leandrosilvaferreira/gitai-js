@@ -138,3 +138,8 @@ export async function getSyncStatus(cwd: string): Promise<SyncStatus> {
 
   return { hasUpstream: true, ahead, behind };
 }
+
+export async function fastForwardPull(cwd: string): Promise<boolean> {
+  const { exitCode } = await runGitCommand(['merge', '--ff-only', '@{u}'], cwd, false);
+  return exitCode === 0;
+}
