@@ -143,3 +143,25 @@ export async function fastForwardPull(cwd: string): Promise<boolean> {
   const { exitCode } = await runGitCommand(['merge', '--ff-only', '@{u}'], cwd, false);
   return exitCode === 0;
 }
+
+export type MergeAttemptResult = { status: 'clean' } | { status: 'conflict'; files: string[] };
+
+export async function attemptAutoMerge(cwd: string): Promise<MergeAttemptResult> {
+  await runGitCommand(['merge', '--no-commit', '@{u}'], cwd, false);
+
+  const { stdout } = await runGitCommand(['diff', '--name-only', '--diff-filter=U'], cwd, false);
+  const files = stdout.split('\n').filter((line) => line.trim() !== '');
+
+  if (files.length > 0) {
+    return { status: 'conflict', files };
+  }
+  return { status: 'clean' };
+}
+
+export async function abortMerge(cwd: string): Promise<void> {
+  await runGitCommand(['merge', '--abort'], cwd);
+}
+
+export async function finalizeMerge(cwd: string): Promise<void> {
+  await runGitCommand(['commit', '--no-edit'], cwd);
+}

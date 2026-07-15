@@ -6,7 +6,14 @@ import { test } from 'node:test';
 
 import { execa } from 'execa';
 
-import { fastForwardPull, getSyncStatus, runGitCommand } from './git.js';
+import {
+  abortMerge,
+  attemptAutoMerge,
+  fastForwardPull,
+  finalizeMerge,
+  getSyncStatus,
+  runGitCommand,
+} from './git.js';
 
 // ---------------------------------------------------------------------------
 // Helpers — bare "remote" repo + two clones, to exercise real fetch/ahead/behind
@@ -162,6 +169,115 @@ test('fastForwardPull returns false when local and remote have diverged', async 
     const result = await fastForwardPull(localDir);
 
     assert.equal(result, false);
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+// ---------------------------------------------------------------------------
+// attemptAutoMerge / abortMerge / finalizeMerge
+// ---------------------------------------------------------------------------
+
+test('attemptAutoMerge returns status=clean when both sides changed different files', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'remote-file.txt'), 'remote change');
+    await execa('git', ['add', '.'], { cwd: otherCloneDir });
+    await execa('git', ['commit', '-m', 'chore: remote change'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'local-file.txt'), 'local change');
+    await execa('git', ['add', '.'], { cwd: localDir });
+    await execa('git', ['commit', '-m', 'chore: local change'], { cwd: localDir });
+
+    await runGitCommand(['fetch'], localDir);
+    const result = await attemptAutoMerge(localDir);
+
+    assert.deepEqual(result, { status: 'clean' });
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('finalizeMerge commits a clean auto-merge with two parents and keeps both files', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'remote-file.txt'), 'remote change');
+    await execa('git', ['add', '.'], { cwd: otherCloneDir });
+    await execa('git', ['commit', '-m', 'chore: remote change'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'local-file.txt'), 'local change');
+    await execa('git', ['add', '.'], { cwd: localDir });
+    await execa('git', ['commit', '-m', 'chore: local change'], { cwd: localDir });
+
+    await runGitCommand(['fetch'], localDir);
+    await attemptAutoMerge(localDir);
+    await finalizeMerge(localDir);
+
+    const { stdout: parents } = await execa('git', ['log', '-1', '--pretty=%P'], {
+      cwd: localDir,
+    });
+    assert.equal(parents.trim().split(' ').length, 2, 'Expected a merge commit with two parents');
+    assert.equal(fs.existsSync(path.join(localDir, 'local-file.txt')), true);
+    assert.equal(fs.existsSync(path.join(localDir, 'remote-file.txt')), true);
+
+    const status = await execa('git', ['status', '--porcelain'], { cwd: localDir });
+    assert.equal(status.stdout, '');
+  } finally {
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('attemptAutoMerge returns status=conflict with the conflicting file when both sides edit the same line', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'README.md'), 'remote change\n');
+    await execa('git', ['commit', '-am', 'chore: remote edit'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'README.md'), 'local change\n');
+    await execa('git', ['commit', '-am', 'chore: local edit'], { cwd: localDir });
+
+    await runGitCommand(['fetch'], localDir);
+    const result = await attemptAutoMerge(localDir);
+
+    assert.equal(result.status, 'conflict');
+    assert.deepEqual(result.status === 'conflict' ? result.files : [], ['README.md']);
+  } finally {
+    await execa('git', ['merge', '--abort'], { cwd: localDir, reject: false });
+    cleanupDirs(remoteDir, localDir, otherCloneDir);
+  }
+});
+
+test('abortMerge restores a clean tree and preserves the local commit after a conflicting merge attempt', async () => {
+  const { remoteDir, localDir, otherCloneDir } = await makeRemoteWithClones();
+  try {
+    fs.writeFileSync(path.join(otherCloneDir, 'README.md'), 'remote change\n');
+    await execa('git', ['commit', '-am', 'chore: remote edit'], { cwd: otherCloneDir });
+    await execa('git', ['push', 'origin', 'main'], { cwd: otherCloneDir });
+
+    fs.writeFileSync(path.join(localDir, 'README.md'), 'local change\n');
+    await execa('git', ['commit', '-am', 'chore: local edit'], { cwd: localDir });
+
+    await runGitCommand(['fetch'], localDir);
+    await attemptAutoMerge(localDir);
+    await abortMerge(localDir);
+
+    const status = await execa('git', ['status', '--porcelain'], { cwd: localDir });
+    assert.equal(status.stdout, '', 'Expected a clean working tree after abort');
+
+    assert.equal(
+      fs.existsSync(path.join(localDir, '.git', 'MERGE_HEAD')),
+      false,
+      'Expected no in-progress merge after abort'
+    );
+
+    const content = fs.readFileSync(path.join(localDir, 'README.md'), 'utf-8');
+    assert.equal(content, 'local change\n', 'Expected the local edit to be preserved untouched');
+
+    const { stdout: log } = await execa('git', ['log', '--oneline'], { cwd: localDir });
+    assert.ok(log.includes('chore: local edit'), 'Expected the local commit to still exist');
   } finally {
     cleanupDirs(remoteDir, localDir, otherCloneDir);
   }
