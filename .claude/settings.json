@@ -1,6 +1,5 @@
 {
   "model": "opusplan",
-  "defaultMode": "bypassPermissions",
   "env": {
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
     "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1"
@@ -9,30 +8,35 @@
   "autoMemoryEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "permissions": {
+    "defaultMode": "bypassPermissions",
     "allow": [
-      "Bash(git add:*)",
-      "Bash(git branch:*)",
-      "Bash(git checkout:*)",
-      "Bash(git commit:*)",
-      "Bash(git diff:*)",
-      "Bash(git fetch:*)",
-      "Bash(git log:*)",
-      "Bash(git merge:*)",
-      "Bash(git pull:*)",
-      "Bash(git push:*)",
-      "Bash(git rebase:*)",
-      "Bash(git reset:*)",
-      "Bash(git stash:*)",
-      "Bash(git status:*)",
-      "Bash(git switch:*)",
-      "Bash(git tag:*)",
-      "Bash(npm install:*)",
-      "Bash(npm run build:*)",
-      "Bash(npm run dev:*)",
-      "Bash(npm run format:*)",
-      "Bash(npm run lint:*)",
-      "Bash(npm run test:*)",
-      "Bash(npx tsc:*)"
+      "Agent",
+      "Bash",
+      "Cd",
+      "Edit",
+      "ExitPlanMode",
+      "Glob",
+      "Grep",
+      "KillShell",
+      "LSP",
+      "Monitor",
+      "MultiEdit",
+      "NotebookEdit",
+      "PowerShell",
+      "Read",
+      "Skill",
+      "TaskCreate",
+      "TaskGet",
+      "TaskList",
+      "TaskOutput",
+      "TaskStop",
+      "TaskUpdate",
+      "TodoWrite",
+      "ToolSearch",
+      "WebFetch",
+      "WebSearch",
+      "Write",
+      "mcp__context7"
     ],
     "deny": [
       "Read(./.env)",
@@ -50,7 +54,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-main-branch.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-main-branch.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -61,13 +67,17 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/secret-scan.mjs"
+            ],
             "timeout": 10
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-write-guard.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -78,7 +88,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk-hook.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/rtk-hook.mjs"
+            ],
             "timeout": 15
           }
         ]
@@ -91,19 +103,25 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/format-on-edit.mjs"
+            ],
             "timeout": 60
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/set-files-changed.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/set-files-changed.mjs"
+            ],
             "timeout": 30
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/sql-idempotent-review.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/sql-idempotent-review.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -115,13 +133,17 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/check-deps-on-start.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-deps-on-start.mjs"
+            ],
             "timeout": 30
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-session-ctx.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-session-ctx.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -133,7 +155,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-prompt-ctx.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-prompt-ctx.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -145,7 +169,9 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-subagent-ctx.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/worktree-subagent-ctx.mjs"
+            ],
             "timeout": 10
           }
         ]
@@ -157,19 +183,25 @@
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/verify-on-stop.mjs"
+            ],
             "timeout": 300
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-stop.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/memory-stop.mjs"
+            ],
             "timeout": 30
           },
           {
             "type": "command",
             "command": "node",
-            "args": ["${CLAUDE_PROJECT_DIR}/.claude/hooks/large-file-warning.mjs"],
+            "args": [
+              "${CLAUDE_PROJECT_DIR}/.claude/hooks/large-file-warning.mjs"
+            ],
             "timeout": 30
           }
         ]
