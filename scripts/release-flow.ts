@@ -168,7 +168,10 @@ export const engines = {
     await runGitCommand(['add', 'package.json', 'src/version.ts', 'CHANGELOG.md'], rootDir);
     await runGitCommand(['commit', '-m', `chore: release ${tag}`, '-m', tagMessage], rootDir);
 
-    await runGitCommand(['tag', '-a', tag, '-m', tagMessage], rootDir);
+    // --cleanup=verbatim: git tag strips lines starting with "#" by default
+    // (unlike git commit with -m), which silently ate every "### <heading>"
+    // in these markdown release notes.
+    await runGitCommand(['tag', '-a', tag, '-m', tagMessage, '--cleanup=verbatim'], rootDir);
     logger.success(`Created annotated git tag ${tag}`);
 
     // 6. Push — pushing the tag triggers CI, which publishes to npm AND creates
