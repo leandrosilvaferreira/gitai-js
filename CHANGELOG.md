@@ -1,13 +1,38 @@
+# Release 1.2.0
+
+This release makes gitai's git pull/push flow safe against local data loss, replacing blind pulls with a smart sync that fast-forwards automatically, asks for confirmation before merging diverged branches, and aborts cleanly on conflict.
+
+### New Features
+
+- Fast-forward automatically when the remote has new commits and there's no divergence — no prompt needed, since it can never conflict or lose data.
+- Ask for confirmation before attempting an automatic merge when local and remote branches have diverged, showing a preview of both sides first.
+- Re-check the remote right before pushing to catch cases where it changed again since the last pull.
+
+### Bug Fixes
+
+- Replace fragile pull-conflict detection (previously matched only specific English/Portuguese text) with locale-independent git commands.
+- Abort cleanly on merge conflicts — the working tree and all local commits are restored exactly, nothing is lost.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.2.0](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.1.1...v1.2.0)
+
+---
+
 # Release 1.1.1
+
 A polished maintenance release with clearer project rules, improved README visibility, and streamlined CI workflows.
 
 ### New Features
+
 - docs: add npm total downloads badge to README (475b628)
 
 ### Bug Fixes
+
 - chore: remove failing PM workflows (PROJECTS_PAT not configured) (bbc53d4)
 
 ### Other Changes
+
 - chore(.claude): translate project rules to English, switch large-file guard to block (f21e50c)
 
 We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
@@ -17,9 +42,11 @@ We thank all the contributors who made this release possible! For more details, 
 ---
 
 # Release 1.1.0
+
 This release brings flexible custom LLM provider support, improved Anthropic configuration handling, and a smoother setup wizard—plus stronger tooling, security, and release automation improvements.
 
 ### New Features
+
 - Support custom LLM endpoints with baseURL and authToken in AIService (fb241a9).
 - Add optional BASE_URL field to AppConfig and ensure undefined fields are omitted when saving config (1ec1ce0).
 - Add optional custom BASE_URL prompt to the setup wizard (9befe2f).
@@ -28,12 +55,14 @@ This release brings flexible custom LLM provider support, improved Anthropic con
 - Add guided AI provider onboarding via add-provider skill (f62c2bc).
 
 ### Bug Fixes
+
 - Prevent command injection in run-related-test hook by using execFileSync (0ae8b71).
 - Resolve tsx via local node_modules/.bin in run-related-test hook (92e1304).
 - Use npm pkg get version in release skill for ESM compatibility (288f8be).
 - Correct branch check wording in release skill (master also accepted) (beb5354).
 
 ### Other Changes
+
 - Add and refine documentation for custom LLM providers, .gitai.example, and Anthropic Claude auth/settings (EN + PT) (afea2b1, fab26db, 9fc2402).
 - Upgrade verify-on-stop hook to strict blocking mode (5276be3).
 - Update aia-harness tooling and add GitHub PM workflows (09b51f0).
@@ -49,15 +78,19 @@ This release brings flexible custom LLM provider support, improved Anthropic con
 ---
 
 # Release 1.0.10
+
 This release modernizes the CI pipeline, upgrades to Node 24, and streamlines maintenance and permissions for a smoother development and release workflow.
 
 ### New Features
+
 - Create GitHub Releases automatically from CI on tag push (2b68daf).
 
 ### Bug Fixes
+
 - Drop stale Node 24 “Premature close” memory issue (ee735ac).
 
 ### Other Changes
+
 - Upgrade to Node 24 and bump GitHub Actions to the latest versions (9cb8a07).
 - Adjust Claude permissions configuration (76fb73d).
 - Remove antigravity harness (cebd7ec).
