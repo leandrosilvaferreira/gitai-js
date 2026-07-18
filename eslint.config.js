@@ -70,6 +70,36 @@ export default tseslint.config(
     },
   },
   {
+    // The release scripts are async and can run unattended, so they get the same
+    // *safety* rules as src/. The complexity/max-lines rules above stay off here on
+    // purpose: release-flow's action handler is a linear sequence of guard clauses
+    // (complexity 24), and splitting it further would scatter the release order
+    // across files for a metric, not for readability. Known, deliberate debt.
+    files: ['scripts/**/*.ts'],
+    extends: [...tseslint.configs.recommendedTypeChecked],
+    languageOptions: {
+      parserOptions: {
+        // Explicit: the default project service only discovers tsconfig.json, which
+        // covers src/ only, so every file here would fail to parse.
+        project: './tsconfig.scripts.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/no-floating-promises': 'error',
+      '@typescript-eslint/no-misused-promises': 'error',
+      'no-process-exit': 'off',
+    },
+  },
+  {
+    files: ['scripts/**/*.test.ts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off',
+      '@typescript-eslint/require-await': 'off',
+    },
+  },
+  {
     // node:test's top-level `test(...)` calls are fire-and-forget by design
     // (the runner schedules them, callers never await the registration call),
     // and async test doubles legitimately implement an async contract without

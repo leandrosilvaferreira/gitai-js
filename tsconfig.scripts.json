@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "rootDir": "."
+  },
+  // src/ is pulled in through the imports here; `tsc --noEmit` already covers it in full.
+  "include": ["scripts/**/*"]
+}

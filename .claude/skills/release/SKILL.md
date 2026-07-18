@@ -5,9 +5,52 @@ description: Use when publishing a new version of gitai to npm — cutting a rel
 
 # Release — gitai (`@notyped/gitai`)
 
-Interactive release for this package. Follow this skill instead of running release commands from memory — three of the gotchas below have each already caused a real incident in this repo.
+**Start here, always:**
 
-**The one fact that governs everything: you never publish. CI does.** `npm run release` only touches git (bump → AI notes → commit → annotated tag → push). Pushing a `v*` tag is what triggers `.github/workflows/publish.yml`, which runs `npm publish --provenance` **and** creates the GitHub Release. No local `npm publish`, no local `gh` in this flow.
+```bash
+npm run release:status
+```
+
+Read-only. It prints local version, npm version, last tag, unreleased commit count, and a verdict with the exact next command. Most release questions — including _"I committed and pushed but no new version appeared"_ — are answered by this one command. Do not diagnose by hand.
+
+**The fact that governs everything: you never publish. CI does.** `npm run release` only touches git (bump → AI notes → commit → annotated tag → push). Pushing a `v*` tag triggers `.github/workflows/publish.yml`, which runs `npm publish --provenance` **and** creates the GitHub Release. There is no local `npm publish`, and nothing here needs `gh` to publish — `gh` is read-only and optional, used by `release:status` to show the CI run. Without it the status still works; the CI line just reads as unknown.
+
+Corollary, and the single most common misunderstanding: **`git push` of commits publishes nothing.** Only a `v*` tag does.
+
+## Cut a release
+
+Fully automatic — no prompts, verifies against npm before returning:
+
+```bash
+npm run release -- --type auto --yes
+```
+
+**Confirm before passing `--yes`.** Publishing is irreversible and public: npm forbids reusing a version, even one whose publish failed. Show the user what is shipping (`git log <last-tag>..HEAD --oneline`) and the inferred bump, and get an explicit go-ahead for both. Without one, use `--no-push` and report what is staged locally — that leaves the commit and tag on the machine and publishes nothing.
+
+`--type auto` infers the bump from Conventional Commits since the last tag: a `!` marker or `BREAKING CHANGE` → major, any `feat:` → minor, otherwise patch. The flow prints what it inferred before acting.
+
+| Flag                                 | Effect                                      |
+| ------------------------------------ | ------------------------------------------- |
+| `--type <patch\|minor\|major\|auto>` | Pick the bump without prompting             |
+| `--version <x.y.z>`                  | Cut an explicit version (must be > current) |
+| `--yes`                              | Push without asking                         |
+| `--no-push`                          | Commit and tag locally, stop before pushing |
+| `--status`                           | Diagnose only, change nothing               |
+
+Omit the flags for the interactive wizard; it pre-selects the inferred bump. **Never drive the wizard by piping keystrokes** — arrow-key sequences depend on choice order, so one added option silently cuts the wrong version. Use the flags.
+
+Running non-interactively without `--type`/`--version`, or without `--yes`/`--no-push`, exits with a message telling you which flag to add. That is deliberate, not a failure.
+
+`--yes` authorises the **push**, not the branch: a non-interactive run off `main`/`master` always refuses, because there is no human to confirm and those commits would feed the release notes. Release from `main`, or run interactively.
+
+## What the flow guarantees
+
+These were manual checklist items that each caused a real incident; they are now enforced in code, so you do not verify them by hand:
+
+- **`.env` is checked before any prompt.** Release notes come from a repo-root `.env` (`PROVIDER`/`MODEL`/`API_KEY`/`LANGUAGE`, see `.env.sample`) via dotenv — **not** from `~/.gitai`. Missing keys fail in one second.
+- **A colliding tag fails before the AI call**, so a retry costs nothing.
+- **The publish is verified against the npm registry** after the push. The flow polls until `npm view` reports the new version and exits non-zero if it never lands. A green CI run alone is _not_ proof — `v1.0.8` passed tests and build, then 404'd on `npm publish`, and npm's history still skips 1.0.7 → 1.0.9 because nobody checked.
+- Clean tree, branch, `npm test`, `npm run build` all run before anything is written.
 
 ## The package name — using the wrong one damages the machine
 
@@ -17,60 +60,19 @@ The package is **`@notyped/gitai`**, always scoped.
 
 `src/version.ts` exports `name = 'gitai'` — that is the **Commander CLI command name**, deliberately ≠ the package name. Do not "fix" it.
 
-## Preconditions
-
-Dispatch the `release-validator` agent — it checks clean tree, branch, tests, build, and tag availability. Then confirm the one thing it does not:
-
-**`.env` must exist at the repo root** with `PROVIDER`, `MODEL`, `API_KEY`, `LANGUAGE` (see `.env.sample`). `scripts/release-flow.ts` reads these via dotenv — **not** from `~/.gitai` — to generate release notes, and does not validate them upfront. Without it the flow dies _after_ it has already prompted you.
-
-```bash
-test -f .env && echo ok || echo "MISSING — cp .env.sample .env and fill it"
-git log $(git describe --tags --abbrev=0)..HEAD --oneline   # what's shipping
-```
-
-## Run
-
-```bash
-npm run release
-```
-
-Prompts, in order:
-
-1. **Release type** — `patch` / `minor` / `major` / `custom`. Nothing infers this from commit prefixes; you choose, using the `git log` above.
-2. **Review the AI-generated notes.**
-3. **Push branch + tag to origin?** → **yes**, or nothing ships.
-
-It writes `package.json`, `src/version.ts`, `CHANGELOG.md`; commits `chore: release vX.Y.Z`; creates an annotated tag carrying the notes. CI reads the notes back out of that tag — that is how rich release notes reach GitHub with no AI key in CI.
-
-Declined the push? Nothing has shipped yet:
-
-```bash
-git push origin main && git push origin vX.Y.Z
-```
-
-## Verify — mandatory, not ceremony
-
-**A green CI run does not prove the package published.** In this repo, `v1.0.8` passed tests and build, then failed on the `npm publish` step (404); npm's history still skips 1.0.7 → 1.0.9 because nobody noticed. Always confirm against the registry itself:
-
-```bash
-gh run list -R leandrosilvaferreira/gitai-js --workflow=publish.yml --limit 1
-npm view @notyped/gitai version      # MUST equal the version you just cut
-gh release list -R leandrosilvaferreira/gitai-js --limit 1
-```
-
-CI takes ~30s. If `npm view` disagrees with the tag, the release did not land — treat it as failed and investigate the run's `npm publish` step.
-
 ## Troubleshooting
 
-| Symptom                                         | Cause / fix                                                                                                                                    |
-| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| Aborts immediately                              | Uncommitted changes — notes come from committed history. Commit first.                                                                         |
-| Dies while generating notes                     | Missing/incomplete `.env` (see Preconditions).                                                                                                 |
-| Tag already exists                              | `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`, then re-run.                                                                         |
-| CI never ran                                    | Tag never reached origin: `git push origin vX.Y.Z`.                                                                                            |
-| CI green but `npm view` shows the old version   | Publish step failed — the `v1.0.8` case. Read the run log; re-cut a new patch version (npm forbids republishing a version, even a failed one). |
-| npm has it, GitHub Release missing              | Publish succeeded, `gh release create` failed. Recover: `gh release create <tag> --title "Release <tag>" --notes-file notes.md <tarball>`      |
-| Published, but `gitai --version` is old locally | Not a release problem — see below.                                                                                                             |
+| Symptom                                         | Cause / fix                                                                                                                                     |
+| ----------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Committed and pushed, no new version            | Normal. Commits do not publish. `npm run release:status`, then cut a release.                                                                   |
+| Aborts immediately                              | Uncommitted changes — notes come from committed history. Commit first.                                                                          |
+| `Missing PROVIDER, MODEL, …`                    | Repo-root `.env` absent or incomplete: `cp .env.sample .env` and fill it.                                                                       |
+| `Tag vX.Y.Z already exists`                     | `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`, then re-run.                                                                          |
+| `Non-interactive run needs --type …`            | Add `--type auto` (and `--yes` or `--no-push`).                                                                                                 |
+| CI never ran                                    | Tag never reached origin: `git push origin vX.Y.Z`.                                                                                             |
+| Flow reports the publish did not land           | Read the run log (`gh run list --workflow=publish.yml --limit 1`); cut a **new patch** — npm forbids republishing a version, even a failed one. |
+| npm has it, GitHub Release missing              | Publish succeeded, `gh release create` failed. Recover: `gh release create <tag> --title "Release <tag>" --notes-file notes.md <tarball>`       |
+| Published, but `gitai --version` is old locally | Not a release problem — see below.                                                                                                              |
 
 ## "It published, but my machine still shows the old version"
 
@@ -95,4 +97,4 @@ grep '"version"' "<that-tree>/lib/node_modules/@notyped/gitai/package.json"
 - Run `npm publish` by hand — CI owns publishing, and a manual publish loses provenance.
 - Reuse or force-push a published version — cut a new patch instead.
 - Use the unscoped `gitai` name in any command.
-- Declare a release done on a green CI run alone — confirm with `npm view`.
+- Drive the interactive wizard with piped keystrokes — pass flags.
