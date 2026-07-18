@@ -29,6 +29,12 @@ export default tseslint.config(
       // (this project's NodeNext convention points them at .ts sources), so it
       // can never build the dependency graph and import-x/no-cycle never fires.
       'import-x/resolver-next': [createTypeScriptImportResolver()],
+      // Separate gate from the resolver above: ExportMap.for() discards any
+      // resolved file whose extension isn't in this allowlist (default is
+      // .js/.mjs/.cjs only) before it ever builds the export map, silently
+      // and without logging — so .ts must be listed here too, or no-cycle
+      // (and no-unresolved etc.) skip every import as if it were unresolved.
+      'import-x/extensions': ['.ts'],
     },
     rules: {
       // Complexity
