@@ -20,8 +20,17 @@ Always use these exact commands (do not guess):
 - **Test:** `npm run test`
 - **Build:** `npm run build`
 - **Run/Dev:** `npm run dev`
+- **Release:** invoke the `release` skill — **never** run `npm run release` / `npm publish` from memory
 
 > **Tests:** `node:test` — run `npm run test`. Write unit tests for **every** new function or module added; never declare work complete without passing tests.
+
+**Releasing to npm — ALWAYS invoke the `release` skill first** (`.claude/skills/release/SKILL.md`, or `/release`).
+This applies to any request to publish, ship, cut a version, bump the version, or "put it on npm".
+The skill is mandatory because the process has three non-obvious traps that have each already caused a
+real incident here: the package is `@notyped/gitai` (unscoped `gitai` is **someone else's published
+package**), the release notes need a repo-root `.env` (not `~/.gitai`), and a green CI run does **not**
+prove the publish succeeded — `v1.0.8` failed at `npm publish` and was never retried.
+`PUBLISHING.md` is the written reference for the same process.
 
 ## Workflow & Agents
 

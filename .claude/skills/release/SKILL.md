@@ -1,117 +1,98 @@
 ---
 name: release
-description: Guided pre-release validation and release execution for gitai npm package
-user-invocable: false
+description: Use when publishing a new version of gitai to npm — cutting a release, bumping the version, shipping to the registry — or when a release was cut but the new version never reached npm, or a user reports the CLI still showing an old version.
 ---
 
-# Release Skill
+# Release — gitai (`@notyped/gitai`)
 
-Guides Claude through pre-release validation and safe release execution for the `@notyped/gitai` npm package.
+Interactive release for this package. Follow this skill instead of running release commands from memory — three of the gotchas below have each already caused a real incident in this repo.
 
-## Pre-Release Checklist
+**The one fact that governs everything: you never publish. CI does.** `npm run release` only touches git (bump → AI notes → commit → annotated tag → push). Pushing a `v*` tag is what triggers `.github/workflows/publish.yml`, which runs `npm publish --provenance` **and** creates the GitHub Release. No local `npm publish`, no local `gh` in this flow.
 
-Before invoking `npm run release`, verify all of these pass:
+## The package name — using the wrong one damages the machine
 
-1. **No uncommitted changes**
+The package is **`@notyped/gitai`**, always scoped.
 
-   ```bash
-   git status --porcelain
-   ```
+**`gitai` unscoped is a different author's real, published package.** `npm view gitai version` reports _their_ version; `npm install -g gitai@latest` installs _their_ CLI over the `gitai` binary. Never use the unscoped name in any command.
 
-   Output must be empty. If there are changes, commit them first.
+`src/version.ts` exports `name = 'gitai'` — that is the **Commander CLI command name**, deliberately ≠ the package name. Do not "fix" it.
 
-2. **On correct branch (main or master)**
+## Preconditions
 
-   ```bash
-   git branch --show-current
-   ```
+Dispatch the `release-validator` agent — it checks clean tree, branch, tests, build, and tag availability. Then confirm the one thing it does not:
 
-   Must output `main` or `master`. Releases from other branches will prompt for confirmation.
+**`.env` must exist at the repo root** with `PROVIDER`, `MODEL`, `API_KEY`, `LANGUAGE` (see `.env.sample`). `scripts/release-flow.ts` reads these via dotenv — **not** from `~/.gitai` — to generate release notes, and does not validate them upfront. Without it the flow dies _after_ it has already prompted you.
 
-3. **Tests pass**
+```bash
+test -f .env && echo ok || echo "MISSING — cp .env.sample .env and fill it"
+git log $(git describe --tags --abbrev=0)..HEAD --oneline   # what's shipping
+```
 
-   ```bash
-   npm run test
-   ```
-
-   All tests must pass. Fix any failing tests before releasing.
-
-4. **Build is clean**
-
-   ```bash
-   npm run build
-   ```
-
-   Build must succeed with no errors. Fix any lint/typecheck errors first.
-
-5. **Version not already published**
-
-   ```bash
-   npm view @notyped/gitai version
-   ```
-
-   Compare this output with the version in `package.json`. If they match, increment the version first using the release script (which prompts for patch/minor/major).
-
-6. **Tag doesn't already exist**
-   ```bash
-   git tag -l "v$(npm pkg get version | tr -d '"')"
-   ```
-   Output must be empty. If the tag exists, the version has already been released.
-
-## Release Execution
-
-Once all pre-release checks pass, invoke the full release workflow:
+## Run
 
 ```bash
 npm run release
 ```
 
-This command:
+Prompts, in order:
 
-1. Runs tests again (`npm test`)
-2. Builds the package (`npm run build`)
-3. Executes the release flow (`tsx scripts/release-flow.ts`)
+1. **Release type** — `patch` / `minor` / `major` / `custom`. Nothing infers this from commit prefixes; you choose, using the `git log` above.
+2. **Review the AI-generated notes.**
+3. **Push branch + tag to origin?** → **yes**, or nothing ships.
 
-The release flow will:
+It writes `package.json`, `src/version.ts`, `CHANGELOG.md`; commits `chore: release vX.Y.Z`; creates an annotated tag carrying the notes. CI reads the notes back out of that tag — that is how rich release notes reach GitHub with no AI key in CI.
 
-- Prompt for release type (patch/minor/major/custom)
-- Generate release notes from git history using AI
-- Update `package.json`, `src/version.ts`, and `CHANGELOG.md`
-- Create a commit: `chore: release v<version>`
-- Create an annotated git tag with release notes
-- Prompt to push the branch and tag to `origin`
+Declined the push? Nothing has shipped yet:
 
-**Important:** The annotated tag carries the release notes so CI can publish them to the GitHub Release without needing an AI API key in the pipeline.
+```bash
+git push origin main && git push origin vX.Y.Z
+```
 
-## Post-Release
+## Verify — mandatory, not ceremony
 
-After `npm run release` completes and you push the tag:
+**A green CI run does not prove the package published.** In this repo, `v1.0.8` passed tests and build, then failed on the `npm publish` step (404); npm's history still skips 1.0.7 → 1.0.9 because nobody noticed. Always confirm against the registry itself:
 
-1. **GitHub Release is created automatically by CI**
-   - Check: https://github.com/leandrosilvaferreira/gitai-js/releases
-   - CI reads release notes from the annotated tag
-   - Release should appear within a few minutes
+```bash
+gh run list -R leandrosilvaferreira/gitai-js --workflow=publish.yml --limit 1
+npm view @notyped/gitai version      # MUST equal the version you just cut
+gh release list -R leandrosilvaferreira/gitai-js --limit 1
+```
 
-2. **npm publish happens automatically by CI**
-   - CI builds and publishes to npm registry
-   - Check: https://www.npmjs.com/package/@notyped/gitai
-   - New version should be available within a few minutes
+CI takes ~30s. If `npm view` disagrees with the tag, the release did not land — treat it as failed and investigate the run's `npm publish` step.
 
-3. **Verify release is live**
-   ```bash
-   npm info @notyped/gitai
-   ```
-   Confirm the new version appears in the registry.
+## Troubleshooting
 
-## When to Use This Skill
+| Symptom                                         | Cause / fix                                                                                                                                    |
+| ----------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Aborts immediately                              | Uncommitted changes — notes come from committed history. Commit first.                                                                         |
+| Dies while generating notes                     | Missing/incomplete `.env` (see Preconditions).                                                                                                 |
+| Tag already exists                              | `git tag -d vX.Y.Z && git push origin :refs/tags/vX.Y.Z`, then re-run.                                                                         |
+| CI never ran                                    | Tag never reached origin: `git push origin vX.Y.Z`.                                                                                            |
+| CI green but `npm view` shows the old version   | Publish step failed — the `v1.0.8` case. Read the run log; re-cut a new patch version (npm forbids republishing a version, even a failed one). |
+| npm has it, GitHub Release missing              | Publish succeeded, `gh release create` failed. Recover: `gh release create <tag> --title "Release <tag>" --notes-file notes.md <tarball>`      |
+| Published, but `gitai --version` is old locally | Not a release problem — see below.                                                                                                             |
 
-- Before any release to npm
-- When incrementing package version
-- When publishing new features or bug fixes
-- When generating release notes for stakeholders
+## "It published, but my machine still shows the old version"
 
-## When NOT to Use This Skill
+If `npm view @notyped/gitai version` shows the new version, the release worked; the problem is the local install.
 
-- During development or feature branches
-- When testing the release process (use `npm run release` on a test branch first)
-- When emergency rollback is needed (contact maintainers, do NOT reuse a version tag)
+On a machine with more than one Node version manager (fnm **and** nvm, say), each has its own global `node_modules`. `npm install -g` can write to a different tree than the shell actually resolves — printing "added N packages" while the `gitai` on `PATH` never changes.
+
+```bash
+which gitai && gitai --version
+npm root -g          # may NOT be the tree your shell's gitai came from
+```
+
+Install into the tree that owns the binary, then verify by reading the file — not by trusting the install output:
+
+```bash
+npm install -g --prefix "<that-tree-prefix>" @notyped/gitai@latest
+grep '"version"' "<that-tree>/lib/node_modules/@notyped/gitai/package.json"
+```
+
+## Never
+
+- Run `npm publish` by hand — CI owns publishing, and a manual publish loses provenance.
+- Reuse or force-push a published version — cut a new patch instead.
+- Use the unscoped `gitai` name in any command.
+- Declare a release done on a green CI run alone — confirm with `npm view`.

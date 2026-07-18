@@ -1,16 +1,18 @@
 ---
 name: release-pipeline
-description: How releases work — GitHub Release is created by CI, notes travel via annotated tag, no AI key in CI
+description: Publishing to npm — ALWAYS use the release skill; CI is the publisher, notes travel via annotated tag, and a green CI run does not prove the publish landed
 metadata:
   type: architecture
 ---
 
-GitHub Release creation lives in **CI (`.github/workflows/publish.yml`)**, NOT in `scripts/release-flow.ts`. Pushing a `v*` tag triggers: `npm ci` → test → build → `npm pack` → `npm publish --provenance` → `gh release create` (notes + the `.tgz` artifact).
+**Any request to publish/ship/release/bump gitai → invoke the `release` skill first** (`.claude/skills/release/SKILL.md`, `/release`). Do not run `npm run release` or `npm publish` from memory. `PUBLISHING.md` is the written reference for the same process. **Why:** three traps below have each already caused a real incident, and none is visible from reading `package.json`.
 
-Release notes flow: `release-flow.ts` generates them locally via `AIService.generateReleaseNotes()` and writes them into an **annotated tag** (`git tag -a <tag> -m <notes>`). CI reads them back with `git for-each-ref "refs/tags/$GITHUB_REF_NAME" --format='%(contents)'`. **Why:** keeps the AI provider API key OUT of CI (public repo) — the tag is a secure side-channel. Requires `fetch-depth: 0` in checkout so the tag object is present.
+**Trap 1 — the package name.** It is `@notyped/gitai` (scoped). **Unscoped `gitai` is a different author's real published package** (v1.0.5, similar description), so `npm view gitai version` reports a stranger's version and `npm install -g gitai@latest` overwrites the `gitai` binary with their CLI. `PUBLISHING.md` told people to do exactly that for ~6 months. Related: `src/version.ts` `name = 'gitai'` is the **Commander CLI command name**, intentionally ≠ the npm package — do NOT "fix" it (a code reviewer already flagged this as a false positive).
 
-**Why this design:** before, `gh release create` ran locally inside `release-flow.ts` and got skipped whenever the bump was done manually → GitHub Releases lagged npm (stuck at v1.0.7 while npm was at 1.0.9). Moving it to CI means any `v*` tag push always creates the Release.
+**Trap 2 — release notes need a repo-root `.env`.** `scripts/release-flow.ts` reads `PROVIDER`/`MODEL`/`API_KEY`/`LANGUAGE` via dotenv, **not** from `~/.gitai`, and does not validate them upfront — so a missing `.env` kills the flow _after_ it has already prompted for the release type.
 
-**How to apply:** run `npm run release` (single command: bump → notes → commit → annotated tag → push). A manual lightweight tag still triggers a Release but with a plain `Release vX` fallback (no rich notes). The new `publish.yml` must be committed to `main` BEFORE the release tag is pushed (Actions uses the workflow at the tagged commit).
+**Trap 3 — green CI ≠ published.** `v1.0.8` passed tests and build, then failed on the `npm publish` step (404); npm's history still skips 1.0.7 → 1.0.9 because nobody checked. Always confirm with `npm view @notyped/gitai version` before calling a release done.
 
-**Gotcha — `src/version.ts` `name = 'gitai'`:** this is the **CLI command name** (Commander `.name(name)` in `index.ts:29`), intentionally ≠ the npm package `@notyped/gitai`. `update-notifier` hardcodes `@notyped/gitai` separately (`index.ts:17`). Do NOT "fix" version.ts to the scoped name — it would rename the CLI command. A code reviewer already flagged this as a false positive.
+**How the pipeline works:** `npm run release` only touches git (bump → AI notes → commit → annotated tag → push). Pushing a `v*` tag triggers `.github/workflows/publish.yml`: `npm ci` → test → build → `npm pack` → `npm publish --provenance` → `gh release create`. **CI is the sole publisher — there is no local `npm publish` and no local `gh`.** Notes travel inside the annotated tag (`git tag -a -m <notes> --cleanup=verbatim`), read back in CI via `git for-each-ref --format='%(contents)'`, which keeps the AI API key OUT of CI on a public repo (requires `fetch-depth: 0`). This design exists because `gh release create` used to run locally and got skipped on manual bumps → GitHub Releases lagged npm (stuck at v1.0.7 while npm was at 1.0.9).
+
+**A successful publish can still leave `gitai --version` old locally** — that is an install problem, not a release problem. On a machine running two Node version managers (fnm + nvm), each has its own global `node_modules`, and `npm install -g` may write to a tree the shell does not resolve — printing "added N packages" while the `gitai` on `PATH` never changes. The `release` skill carries the diagnosis.
