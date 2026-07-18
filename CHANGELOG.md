@@ -1,3 +1,22 @@
+# Release 1.4.0
+This release streamlines and hardens the release process with a new non-interactive, self-verifying flow, plus improved documentation and updated Claude configuration.
+
+### New Features
+- Make the release flow non-interactive and self-verifying (697141d)
+
+### Bug Fixes
+- No bug fixes in this release.
+
+### Other Changes
+- Update Claude settings with schema, plugins, and worktree config (943dd38)
+- Route all release work through the skill instead of restating it (5f7824f)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.4.0](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.3.0...v1.4.0)
+
+---
+
 # Release 1.3.0
 This release brings a polished self-update experience, clearer documentation, and stronger CI/quality safeguards to keep development smooth and reliable.
 
