@@ -1,3 +1,30 @@
+# Release 1.3.0
+This release brings a polished self-update experience, clearer documentation, and stronger CI/quality safeguards to keep development smooth and reliable.
+
+### New Features
+- Add self-update check with install confirmation (6d581c1)
+- Wire self-update check into gitai's main command (0ff71fd)
+
+### Bug Fixes
+- Widen self-update's throttle-check try/catch to cover the config read (1aeafac)
+- Log the underlying error when self-update install fails (e7400d7)
+- Set import-x/extensions so no-cycle can see resolved .ts files (d1cbed3)
+- Preserve markdown headers in release tag messages (162752a)
+
+### Other Changes
+- Clarify release-notes generator does not publish (e958f6d)
+- Fix release runbook and make the release skill invocable (8066099)
+- Document import-x/no-cycle extensions gotcha (f8ddd02)
+- Add non-blocking coverage report step (eb6ff0f)
+- Apply npm audit fix for transitive dev dependencies (b218039)
+- Port lint/complexity/coverage quality gates from claude-agents-view-vscode (9095d71)
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.3.0](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.2.0...v1.3.0)
+
+---
+
 # Release 1.2.0
 
 This release makes gitai's git pull/push flow safe against local data loss, replacing blind pulls with a smart sync that fast-forwards automatically, asks for confirmation before merging diverged branches, and aborts cleanly on conflict.
