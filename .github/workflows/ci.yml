@@ -20,4 +20,10 @@ jobs:
       - run: npm run lint
         continue-on-error: false
       - run: npm test
+      # TEMPORARY (non-blocking): real coverage is ~54% lines/statements vs the 80%
+      # threshold in package.json's test:coverage script, dragged down by setup.ts
+      # (0% covered) and ai.ts (~27% covered) having no tests. Report-only until
+      # those modules are covered, then flip continue-on-error to false.
+      - run: npm run test:coverage
+        continue-on-error: true
       - run: npm run build
