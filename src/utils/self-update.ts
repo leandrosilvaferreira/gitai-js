@@ -28,7 +28,9 @@ export async function checkForSelfUpdate(deps: SelfUpdateDeps): Promise<SelfUpda
   try {
     await deps.installUpdate(info);
     return 'installed';
-  } catch {
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Automatic update failed: ${message}`);
     return 'install-failed';
   }
 }
@@ -56,8 +58,7 @@ export function createSelfUpdateDeps(pkgName: string, currentVersion: string): S
         return false;
       }
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const answers: any = await inquirer.prompt([
+      const answers = await inquirer.prompt<{ proceed: boolean }>([
         {
           type: 'confirm',
           name: 'proceed',
@@ -66,7 +67,7 @@ export function createSelfUpdateDeps(pkgName: string, currentVersion: string): S
         },
       ]);
 
-      return Boolean(answers.proceed);
+      return answers.proceed;
     },
     installUpdate: async (info) => {
       logger.info(`Updating gitai to ${info.latest}...`);
