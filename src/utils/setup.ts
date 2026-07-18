@@ -1,9 +1,28 @@
 import chalk from 'chalk';
 import { execa } from 'execa';
-import inquirer from 'inquirer';
+import inquirer, { type DistinctQuestion } from 'inquirer';
 import { AppConfig, CONFIG_PATH, checkConfigExists, loadConfig, saveConfig } from './config.js';
 
 import { version } from '../version.js';
+
+interface SetupAnswers {
+  LANGUAGE?: string;
+  PROVIDER?: string;
+  API_KEY?: string;
+  MODEL?: string;
+  BASE_URL?: string;
+}
+
+function mergeConfig(answers: SetupAnswers, currentConfig: Partial<AppConfig>): AppConfig {
+  const baseURL = answers.BASE_URL || currentConfig.BASE_URL;
+  return {
+    LANGUAGE: answers.LANGUAGE || currentConfig.LANGUAGE!,
+    PROVIDER: answers.PROVIDER || currentConfig.PROVIDER!,
+    API_KEY: answers.API_KEY || currentConfig.API_KEY!,
+    MODEL: answers.MODEL || currentConfig.MODEL!,
+    ...(baseURL ? { BASE_URL: baseURL } : {}),
+  };
+}
 
 export async function runSetup(): Promise<AppConfig> {
   console.clear();
@@ -48,7 +67,7 @@ export async function runSetup(): Promise<AppConfig> {
   }
 
   // 3. Prompts
-  const prompts = [
+  const prompts: DistinctQuestion<SetupAnswers>[] = [
     {
       type: 'list',
       name: 'LANGUAGE',
@@ -91,8 +110,7 @@ export async function runSetup(): Promise<AppConfig> {
       type: 'input',
       name: 'MODEL',
       message: 'Model ID (e.g., gpt-5.2, claude-3-5-sonnet, llama-3.3-70b-versatile):',
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      default: (answers: any) => {
+      default: (answers: Pick<SetupAnswers, 'PROVIDER'>) => {
         const provider = answers.PROVIDER || currentConfig.PROVIDER;
         if (provider === 'openai') return 'gpt-5.2';
         if (provider === 'anthropic') return 'claude-3-5-sonnet-20240620';
@@ -110,18 +128,9 @@ export async function runSetup(): Promise<AppConfig> {
     },
   ];
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const answers = await inquirer.prompt(prompts as any);
+  const answers = await inquirer.prompt<SetupAnswers>(prompts);
 
-  const config: AppConfig = {
-    LANGUAGE: answers.LANGUAGE || currentConfig.LANGUAGE!,
-    PROVIDER: answers.PROVIDER || currentConfig.PROVIDER!,
-    API_KEY: answers.API_KEY || currentConfig.API_KEY!,
-    MODEL: answers.MODEL || currentConfig.MODEL!,
-    ...(answers.BASE_URL || currentConfig.BASE_URL
-      ? { BASE_URL: answers.BASE_URL || currentConfig.BASE_URL }
-      : {}),
-  };
+  const config: AppConfig = mergeConfig(answers, currentConfig);
 
   saveConfig(config);
 

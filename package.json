@@ -20,7 +20,8 @@
     "format": "prettier --write 'src/**/*.{ts,js}'",
     "release-notes": "npm run lint && tsx src/releaser.ts",
     "release": "npm test && npm run build && tsx scripts/release-flow.ts",
-    "test": "node --import tsx --test \"src/**/*.test.ts\""
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
+    "test:coverage": "c8 --all --src src --exclude \"src/**/*.test.ts\" --exclude src/index.ts --exclude src/version.ts --exclude src/utils/logger.ts --exclude src/releaser.ts --reporter=text --reporter=html --check-coverage --lines 80 --branches 65 --functions 80 --statements 80 npm test"
   },
   "keywords": [
     "git",
@@ -38,14 +39,18 @@
     "@eslint/js": "^9.39.2",
     "@types/node": "^22.0.0",
     "@types/update-notifier": "^6.0.8",
+    "c8": "^12.0.0",
     "eslint": "^9.0.0",
+    "eslint-import-resolver-typescript": "^4.4.5",
+    "eslint-plugin-import-x": "^4.17.1",
+    "eslint-plugin-sonarjs": "^4.2.0",
     "globals": "^17.2.0",
     "prettier": "^3.0.0",
     "ts-node": "^10.9.2",
     "tsup": "^8.5.1",
     "tsx": "^4.21.0",
     "typescript": "^5.0.0",
-    "typescript-eslint": "^8.54.0"
+    "typescript-eslint": "^8.64.0"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.105.0",

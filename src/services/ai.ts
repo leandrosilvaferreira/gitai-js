@@ -12,6 +12,13 @@ interface AIConfig {
   authToken?: string;
 }
 
+interface CommitMessageInput {
+  diffOutput: string;
+  deletedFiles: string[];
+  projectLanguage: string;
+  baseMessage: string;
+}
+
 // Reasoning models (o1, o3, gpt-5 family) reject temperature/top_p/frequency_penalty/presence_penalty
 export function isReasoningModel(model: string): boolean {
   return ['o1', 'o3', 'gpt-5'].some((prefix) => model.startsWith(prefix));
@@ -91,12 +98,12 @@ If the instructions are not followed correctly, the result will not be accepted.
 `.trim();
   }
 
-  private getCommitUserPrompt(
-    diffOutput: string,
-    deletedFiles: string[],
-    projectLanguage: string,
-    baseMessage: string
-  ): string {
+  private getCommitUserPrompt({
+    diffOutput,
+    deletedFiles,
+    projectLanguage,
+    baseMessage,
+  }: CommitMessageInput): string {
     let deletedFilesSection = '';
     if (deletedFiles && deletedFiles.length > 0) {
       const filesToList = deletedFiles.slice(0, 30);
@@ -147,19 +154,9 @@ Line 3+: [detailed explanation of changes, reasons, and impact]
 `.trim();
   }
 
-  async generateCommitMessage(
-    diffOutput: string,
-    deletedFiles: string[],
-    projectLanguage: string,
-    baseMessage: string
-  ): Promise<string> {
+  async generateCommitMessage(input: CommitMessageInput): Promise<string> {
     const systemPrompt = this.getCommitSystemPrompt();
-    const userPrompt = this.getCommitUserPrompt(
-      diffOutput,
-      deletedFiles,
-      projectLanguage,
-      baseMessage
-    );
+    const userPrompt = this.getCommitUserPrompt(input);
 
     const commitMessage = await this.callApi(systemPrompt, userPrompt);
     const signature =
@@ -216,64 +213,83 @@ If the instructions are not followed correctly, the result will not be accepted.
     return this.callApi(systemPrompt, userPrompt);
   }
 
+  private async callOpenAI(
+    openai: OpenAI,
+    systemPrompt: string,
+    userPrompt: string
+  ): Promise<string> {
+    logger.ai(`Provider: openai - Model: ${this.config.model}`);
+
+    if (isReasoningModel(this.config.model)) {
+      // gpt-5.x, o1, o3 → Responses API (chat/completions rejects these models)
+      const response = await openai.responses.create({
+        model: this.config.model,
+        instructions: systemPrompt,
+        input: userPrompt,
+        max_output_tokens: 500,
+      });
+      return response.output_text?.trim() || '';
+    }
+
+    const completion = await openai.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      model: this.config.model,
+      temperature: 0.5,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+      max_tokens: 500,
+    });
+
+    return completion.choices[0].message.content?.trim() || '';
+  }
+
+  private async callGroq(groq: Groq, systemPrompt: string, userPrompt: string): Promise<string> {
+    logger.ai(`Provider: groq - Model: ${this.config.model}`);
+    const completion = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      model: this.config.model,
+      temperature: 0.5,
+      max_tokens: 500,
+      top_p: 1.0,
+      frequency_penalty: 0.0,
+      presence_penalty: 0.0,
+    });
+    return completion.choices[0].message.content?.trim() || '';
+  }
+
+  private async callAnthropic(
+    anthropic: Anthropic,
+    systemPrompt: string,
+    userPrompt: string
+  ): Promise<string> {
+    logger.ai(`Provider: anthropic - Model: ${this.config.model}`);
+    const message = await anthropic.messages.create({
+      model: this.config.model,
+      max_tokens: 500,
+      temperature: 0.5,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+    });
+    const contentBlock = message.content[0];
+    return contentBlock.type === 'text' ? contentBlock.text.trim() : '';
+  }
+
   private async callApi(systemPrompt: string, userPrompt: string): Promise<string> {
     if (this.config.provider === 'openai' && this.openai) {
-      logger.ai(`Provider: openai - Model: ${this.config.model}`);
-
-      if (isReasoningModel(this.config.model)) {
-        // gpt-5.x, o1, o3 → Responses API (chat/completions rejects these models)
-        const response = await this.openai.responses.create({
-          model: this.config.model,
-          instructions: systemPrompt,
-          input: userPrompt,
-          max_output_tokens: 500,
-        });
-        return response.output_text?.trim() || '';
-      }
-
-      const completion = await this.openai.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        model: this.config.model,
-        temperature: 0.5,
-        top_p: 1.0,
-        frequency_penalty: 0.0,
-        presence_penalty: 0.0,
-        max_tokens: 500,
-      });
-
-      return completion.choices[0].message.content?.trim() || '';
-    } else if (this.config.provider === 'groq' && this.groq) {
-      logger.ai(`Provider: groq - Model: ${this.config.model}`);
-      const completion = await this.groq.chat.completions.create({
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        model: this.config.model,
-        temperature: 0.5,
-        max_tokens: 500,
-        top_p: 1.0,
-        frequency_penalty: 0.0,
-        presence_penalty: 0.0,
-      });
-      return completion.choices[0].message.content?.trim() || '';
-    } else if (this.config.provider === 'anthropic' && this.anthropic) {
-      logger.ai(`Provider: anthropic - Model: ${this.config.model}`);
-      const message = await this.anthropic.messages.create({
-        model: this.config.model,
-        max_tokens: 500,
-        temperature: 0.5,
-        system: systemPrompt,
-        messages: [{ role: 'user', content: userPrompt }],
-      });
-      const contentBlock = message.content[0];
-      if (contentBlock.type === 'text') {
-        return contentBlock.text.trim();
-      }
-      return '';
+      return this.callOpenAI(this.openai, systemPrompt, userPrompt);
+    }
+    if (this.config.provider === 'groq' && this.groq) {
+      return this.callGroq(this.groq, systemPrompt, userPrompt);
+    }
+    if (this.config.provider === 'anthropic' && this.anthropic) {
+      return this.callAnthropic(this.anthropic, systemPrompt, userPrompt);
     }
 
     return '';

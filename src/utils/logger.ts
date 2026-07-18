@@ -26,5 +26,5 @@ export const logger = {
     console.log('\n' + chalk.bgBlue.white.bold(' Generated commit message: ') + '\n');
     console.log(chalk.white.bold(message));
     console.log();
-  }
+  },
 };
