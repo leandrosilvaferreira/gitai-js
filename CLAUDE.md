@@ -24,15 +24,11 @@ Always use these exact commands (do not guess):
 
 > **Tests:** `node:test` — run `npm run test`. Write unit tests for **every** new function or module added; never declare work complete without passing tests.
 
-**Releasing to npm — ALWAYS invoke the `release` skill first** (`.claude/skills/release/SKILL.md`, or `/release`).
-This applies to any request to publish, ship, cut a version, bump the version, or "put it on npm".
-Start with `npm run release:status` (read-only) — it answers "where does the release stand", including
-the most common confusion: **committing and pushing publishes nothing; only pushing a `v*` tag does.**
-Cut a release with `npm run release -- --type auto --yes`; never pipe keystrokes into the interactive
-wizard. The skill is mandatory because the package is `@notyped/gitai` (unscoped `gitai` is **someone
-else's published package**) and because a green CI run does **not** prove the publish succeeded —
-`v1.0.8` failed at `npm publish` and was never retried, which is why the flow now verifies against the
-registry itself. `PUBLISHING.md` is the written reference for the same process.
+**Anything about releasing → invoke the `release` skill and follow it.** Publishing, shipping, cutting
+or bumping a version, "put it on npm", or a report that a release did not land. Do not reconstruct the
+steps here or from memory: publishing is irreversible, the skill carries the confirmation gate and the
+traps that have each already caused a real incident, and any command copied out of this file bypasses
+both. `/release` · `.claude/skills/release/SKILL.md` · `PUBLISHING.md` is the same process in prose.
 
 ## Workflow & Agents
 
