@@ -40,12 +40,12 @@ export function createSelfUpdateDeps(pkgName: string, currentVersion: string): S
 
   return {
     fetchLatest: async () => {
-      const lastCheck = notifier.config?.get<number>('lastUpdateCheck') ?? 0;
-      if (Date.now() - lastCheck < ONE_DAY_MS) {
-        return undefined;
-      }
-
       try {
+        const lastCheck = notifier.config?.get<number>('lastUpdateCheck') ?? 0;
+        if (Date.now() - lastCheck < ONE_DAY_MS) {
+          return undefined;
+        }
+
         const info = await notifier.fetchInfo();
         notifier.config?.set('lastUpdateCheck', Date.now());
         return info.type === 'latest' ? undefined : info;
