@@ -1,8 +1,10 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "model": "opusplan",
   "env": {
     "CLAUDE_CODE_EFFORT_LEVEL": "max",
-    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1"
+    "CLAUDE_CODE_DISABLE_ADAPTIVE_THINKING": "1",
+    "CAVEMAN_DEFAULT_MODE": "ultra"
   },
   "showClearContextOnPlanAccept": true,
   "autoMemoryEnabled": true,
@@ -44,6 +46,15 @@
       "Read(./**/.env)",
       "Read(./**/.env.*)",
       "Read(./secrets/**)"
+    ],
+    "additionalDirectories": [
+      "~/.claude",
+      ".claude/hooks",
+      ".claude/scripts",
+      "~/.claude/plans",
+      ".git",
+      "/tmp",
+      "/private/tmp"
     ]
   },
   "hooks": {
@@ -207,5 +218,28 @@
         ]
       }
     ]
+  },
+  "worktree": {
+    "baseRef": "head"
+  },
+  "enabledPlugins": {
+    "typescript-lsp@claude-plugins-official": true,
+    "caveman@caveman": true,
+    "ponytail@ponytail": true,
+    "superpowers@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "caveman": {
+      "source": {
+        "source": "github",
+        "repo": "JuliusBrussee/caveman"
+      }
+    },
+    "ponytail": {
+      "source": {
+        "source": "github",
+        "repo": "DietrichGebert/ponytail"
+      }
+    }
   }
 }
