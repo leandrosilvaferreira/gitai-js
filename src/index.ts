@@ -22,14 +22,15 @@ import {
 } from './utils/git.js';
 import { detectProjectLanguage, printDetectedLanguage } from './utils/language.js';
 import { logger } from './utils/logger.js';
+import {
+  checkForSelfUpdate,
+  createSelfUpdateDeps,
+  type SelfUpdateOutcome,
+} from './utils/self-update.js';
 import { runSetup } from './utils/setup.js';
 import { type ClaudeEnvSettings, readClaudeSettings } from './utils/claude-settings.js';
 
-import updateNotifier from 'update-notifier';
 import { engines, name, version } from './version.js';
-
-// Check for updates
-updateNotifier({ pkg: { name: '@notyped/gitai', version } }).notify();
 
 // 0. Validate Node Version
 if (!validateNodeVersion()) {
@@ -166,6 +167,15 @@ async function pushIfRequested(projectPath: string): Promise<void> {
   }
 }
 
+function handleUpdateOutcome(outcome: SelfUpdateOutcome): void {
+  if (outcome === 'declined') {
+    logger.info('Update declined. Continuing with the current version.');
+  }
+  if (outcome === 'install-failed') {
+    logger.warning('Automatic update failed. Continuing with the current version.');
+  }
+}
+
 const program = new Command();
 
 program.name(name).description('AI-powered git commit assistant').version(version);
@@ -217,6 +227,14 @@ program
       }
 
       logger.header(`Gitai v${version}`);
+
+      const updateOutcome = await checkForSelfUpdate(
+        createSelfUpdateDeps('@notyped/gitai', version)
+      );
+      if (updateOutcome === 'installed') {
+        process.exit(0);
+      }
+      handleUpdateOutcome(updateOutcome);
 
       const projectPath = path.resolve(projectPathArg);
       logger.info(`📁 project_path: ${projectPath}\n`);
