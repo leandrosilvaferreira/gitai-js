@@ -245,6 +245,9 @@ gitai . '' --push
 
 Gitai includes a built-in release notes generator that analyzes commits since the last tag and creates detailed release documentation.
 
+> **This only writes notes to a file — it does not publish anything.** To actually release a new
+> version of gitai to npm, see [PUBLISHING.md](PUBLISHING.md) (`npm run release`).
+
 To generate release notes:
 
 ```bash
@@ -586,6 +589,9 @@ gitai . '' --push
 ## 🚀 Gerando Notas de Lançamento (Release Notes)
 
 O Gitai inclui um gerador de notas de lançamento integrado que analisa os commits desde a última tag e cria documentação de lançamento detalhada.
+
+> **Isso apenas grava as notas em um arquivo — não publica nada.** Para de fato lançar uma nova
+> versão do gitai no npm, veja [PUBLISHING.md](PUBLISHING.md) (`npm run release`).
 
 Para gerar notas de lançamento:
 
