@@ -17,39 +17,38 @@
  * DDD-aligned extraction is suggested either way. Always exits 0; both outputs
  * satisfy the Stop / PostToolUse hook schemas.
  */
-import fs from "node:fs";
-import path from "node:path";
-import os from "node:os";
-import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
+import fs from 'node:fs';
+import path from 'node:path';
+import { execFileSync } from 'node:child_process';
+import { sessionScratchDir } from './session-scratch.mjs';
 
 const MAX_LINES = 350;
 
 /** Extensions that represent source/business-logic code worth checking. */
 const SOURCE_EXTS = new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".mjs",
-  ".cjs",
-  ".mts",
-  ".cts",
-  ".py",
-  ".java",
-  ".kt",
-  ".kts",
-  ".go",
-  ".rb",
-  ".php",
-  ".swift",
-  ".rs",
-  ".cs",
-  ".dart",
-  ".ex",
-  ".exs",
-  ".vue",
-  ".svelte",
+  '.ts',
+  '.tsx',
+  '.js',
+  '.jsx',
+  '.mjs',
+  '.cjs',
+  '.mts',
+  '.cts',
+  '.py',
+  '.java',
+  '.kt',
+  '.kts',
+  '.go',
+  '.rb',
+  '.php',
+  '.swift',
+  '.rs',
+  '.cs',
+  '.dart',
+  '.ex',
+  '.exs',
+  '.vue',
+  '.svelte',
 ]);
 
 /**
@@ -57,39 +56,39 @@ const SOURCE_EXTS = new Set([
  * files inside these are never checked.
  */
 const IGNORED_DIRS = new Set([
-  "node_modules",
-  "build",
-  "dist",
-  "target",
-  ".next",
-  "out",
-  "__pycache__",
-  ".gradle",
-  "vendor",
-  "coverage",
-  ".git",
-  ".build",
-  "DerivedData",
-  "Pods",
-  ".cache",
-  "tmp",
-  ".tmp",
-  "generated",
-  "gen",
-  "__generated__",
-  "migrations",
-  "migration",
-  "fixtures",
-  "mocks",
-  "__mocks__",
-  "stubs",
-  "lang",
-  "i18n",
-  "locales",
-  "assets",
-  "static",
-  "public",
-  "templates",
+  'node_modules',
+  'build',
+  'dist',
+  'target',
+  '.next',
+  'out',
+  '__pycache__',
+  '.gradle',
+  'vendor',
+  'coverage',
+  '.git',
+  '.build',
+  'DerivedData',
+  'Pods',
+  '.cache',
+  'tmp',
+  '.tmp',
+  'generated',
+  'gen',
+  '__generated__',
+  'migrations',
+  'migration',
+  'fixtures',
+  'mocks',
+  '__mocks__',
+  'stubs',
+  'lang',
+  'i18n',
+  'locales',
+  'assets',
+  'static',
+  'public',
+  'templates',
 ]);
 
 /**
@@ -102,12 +101,17 @@ function isSourceFile(absPath) {
   const ext = path.extname(absPath).toLowerCase();
   if (!SOURCE_EXTS.has(ext)) return false;
   // TypeScript declaration files are type-only, not logic.
-  if (absPath.endsWith(".d.ts")) return false;
+  if (absPath.endsWith('.d.ts')) return false;
 
   const parts = absPath.split(path.sep);
   for (const seg of parts.slice(0, -1)) {
     if (IGNORED_DIRS.has(seg)) return false;
   }
+  // .claude/hooks holds aia-harness-vendored hook scripts, never hand-authored
+  // business logic — a bare "hooks" segment isn't added to IGNORED_DIRS above
+  // since that would also exempt an unrelated project's own src/hooks/.
+  const claudeIdx = parts.indexOf('.claude');
+  if (claudeIdx !== -1 && parts[claudeIdx + 1] === 'hooks') return false;
 
   const base = path.basename(absPath);
   // Test / story / config files — not primary logic.
@@ -125,7 +129,7 @@ function isSourceFile(absPath) {
 function countLines(absPath) {
   try {
     if (!fs.existsSync(absPath)) return null;
-    return fs.readFileSync(absPath, "utf8").split(/\r?\n/).length;
+    return fs.readFileSync(absPath, 'utf8').split(/\r?\n/).length;
   } catch {
     return null;
   }
@@ -134,32 +138,32 @@ function countLines(absPath) {
 /** @returns {string} */
 function readStdin() {
   try {
-    return fs.readFileSync(0, "utf8");
+    return fs.readFileSync(0, 'utf8');
   } catch {
-    return "";
+    return '';
   }
 }
 
 /** @type {any} */
 let event = {};
 try {
-  event = JSON.parse(readStdin() || "{}");
+  event = JSON.parse(readStdin() || '{}');
 } catch {
   process.exit(0);
 }
 
 const projectDir = process.env.CLAUDE_PROJECT_DIR ?? process.cwd();
-const projHash = createHash("sha1").update(projectDir).digest("hex").slice(0, 12);
+const execDir = (typeof event.cwd === 'string' && event.cwd && event.cwd) || projectDir;
 
 /** Shared DDD-aligned extraction guidance. */
 const DDD_HINTS = [
-  "Refactor into smaller, focused units (DDD-aligned):",
-  "  – Business logic → domain service or use-case class",
-  "  – Repeated UI blocks → reusable sub-component",
-  "  – Data access code → repository / adapter class",
-  "  – Cluster of helpers → domain-specific utility module",
+  'Refactor into smaller, focused units (DDD-aligned):',
+  '  – Business logic → domain service or use-case class',
+  '  – Repeated UI blocks → reusable sub-component',
+  '  – Data access code → repository / adapter class',
+  '  – Cluster of helpers → domain-specific utility module',
   `Keep each file under ${MAX_LINES} lines with a single clear responsibility.`,
-].join("\n");
+].join('\n');
 
 /**
  * ADVISORY (PostToolUse): nudge on the just-edited file, once per session+file.
@@ -168,35 +172,36 @@ const DDD_HINTS = [
 function advisory() {
   const ti = event.tool_input || {};
   const file = ti.file_path ?? ti.path;
-  if (!file || typeof file !== "string") return;
-  const abs = path.isAbsolute(file) ? file : path.join(projectDir, file);
+  if (!file || typeof file !== 'string') return;
+  const abs = path.isAbsolute(file) ? file : path.join(execDir, file);
   if (!isSourceFile(abs)) return;
   const lines = countLines(abs);
   if (lines == null || lines <= MAX_LINES) return;
 
-  // De-dup: notify at most once per (session, file).
-  const sessionId = typeof event.session_id === "string" ? event.session_id : "nosession";
-  const notifiedFlag = path.join(os.tmpdir(), `aia-harness-largefile-notified-${projHash}`);
-  const key = `${sessionId}\t${abs}`;
+  // De-dup: notify at most once per (session, file). The scratch dir is
+  // itself session-scoped, so the file no longer needs a session prefix —
+  // see templates/hooks/session-scratch.mjs.
+  const sessionId = typeof event.session_id === 'string' ? event.session_id : 'nosession';
+  const notifiedFlag = path.join(sessionScratchDir(sessionId), 'largefile-notified');
   try {
-    if (fs.readFileSync(notifiedFlag, "utf8").split(/\r?\n/).includes(key)) return;
+    if (fs.readFileSync(notifiedFlag, 'utf8').split(/\r?\n/).includes(abs)) return;
   } catch {
     // No flag yet — first notice this session.
   }
   try {
-    fs.appendFileSync(notifiedFlag, key + "\n");
+    fs.appendFileSync(notifiedFlag, abs + '\n');
   } catch {
     // Best-effort; a missed de-dup only repeats the (harmless) advice.
   }
 
-  const rel = path.relative(projectDir, abs) || path.basename(abs);
+  const rel = path.relative(execDir, abs) || path.basename(abs);
   const additionalContext = [
     `${rel} has ${lines} lines (over the ${MAX_LINES}-line budget).`,
     "Tell the user and OFFER to refactor it into smaller units. Do NOT refactor without the user's approval.",
     DDD_HINTS,
-  ].join("\n");
+  ].join('\n');
   process.stdout.write(
-    JSON.stringify({ hookSpecificOutput: { hookEventName: "PostToolUse", additionalContext } }),
+    JSON.stringify({ hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext } })
   );
 }
 
@@ -210,23 +215,25 @@ function blockOnStop() {
 
   /** @type {string[]} */
   let candidates = [];
-  const flag = path.join(os.tmpdir(), `aia-harness-changed-${projHash}`);
+  const sessionId = typeof event.session_id === 'string' ? event.session_id : 'nosession';
+  const flag = path.join(sessionScratchDir(sessionId), 'files-changed');
 
   // Primary: session-tracked files recorded by set-files-changed.mjs.
   try {
-    const raw = fs.readFileSync(flag, "utf8");
+    const raw = fs.readFileSync(flag, 'utf8');
     candidates = [...new Set(raw.split(/\r?\n/).filter(Boolean))];
   } catch {
     // Fallback: working-tree changes visible via git.
     try {
-      const status = execFileSync("git", ["status", "--porcelain"], {
-        cwd: projectDir,
-        encoding: "utf8",
+      const status = execFileSync('git', ['status', '--porcelain'], {
+        cwd: execDir,
+        encoding: 'utf8',
+        windowsHide: true,
       });
       candidates = status
         .split(/\r?\n/)
         .filter(Boolean)
-        .map((line) => path.join(projectDir, line.slice(3).trim()));
+        .map((line) => path.join(execDir, line.slice(3).trim()));
     } catch {
       return;
     }
@@ -235,28 +242,28 @@ function blockOnStop() {
   /** @type {{ file: string; lines: number }[]} */
   const oversized = [];
   for (const f of candidates) {
-    const abs = path.isAbsolute(f) ? f : path.join(projectDir, f);
+    const abs = path.isAbsolute(f) ? f : path.join(execDir, f);
     if (!isSourceFile(abs)) continue;
     const lines = countLines(abs);
     if (lines != null && lines > MAX_LINES) {
-      oversized.push({ file: path.relative(projectDir, abs), lines });
+      oversized.push({ file: path.relative(execDir, abs), lines });
     }
   }
   if (oversized.length === 0) return;
 
   const sorted = oversized.sort((a, b) => b.lines - a.lines);
-  const list = sorted.map(({ file, lines }) => `  • ${file} (${lines} lines)`).join("\n");
+  const list = sorted.map(({ file, lines }) => `  • ${file} (${lines} lines)`).join('\n');
   const reason = [
     `${sorted.length} source file(s) exceed ${MAX_LINES} lines:`,
     list,
-    "",
-    "Refactor them into smaller, single-responsibility units BEFORE finishing.",
+    '',
+    'Refactor them into smaller, single-responsibility units BEFORE finishing.',
     DDD_HINTS,
-  ].join("\n");
-  process.stdout.write(JSON.stringify({ decision: "block", reason }));
+  ].join('\n');
+  process.stdout.write(JSON.stringify({ decision: 'block', reason }));
 }
 
-if (event.hook_event_name === "PostToolUse") {
+if (event.hook_event_name === 'PostToolUse') {
   advisory();
 } else {
   blockOnStop();
