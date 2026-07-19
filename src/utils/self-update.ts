@@ -1,5 +1,6 @@
 import { execa } from 'execa';
 import inquirer from 'inquirer';
+import semver from 'semver';
 import updateNotifier, { type UpdateInfo } from 'update-notifier';
 
 import { logger } from './logger.js';
@@ -69,10 +70,85 @@ export function createSelfUpdateDeps(pkgName: string, currentVersion: string): S
 
       return answers.proceed;
     },
-    installUpdate: async (info) => {
-      logger.info(`Updating gitai to ${info.latest}...`);
-      await execa('npm', ['install', '-g', `${pkgName}@${info.latest}`]);
-      logger.success(`Updated to gitai ${info.latest}. Re-run gitai to use the new version.`);
-    },
+    installUpdate: async (info) => installPackageUpdate(pkgName, info.latest),
   };
+}
+
+// Always fetches fresh (no throttle check) and returns info even when
+// already latest — unlike fetchLatest (used by createSelfUpdateDeps),
+// which hides "latest" and respects the 1x/day throttle.
+export async function fetchVersionInfo(
+  pkgName: string,
+  currentVersion: string
+): Promise<UpdateInfo | undefined> {
+  try {
+    const notifier = updateNotifier({ pkg: { name: pkgName, version: currentVersion } });
+    const info = await notifier.fetchInfo();
+    notifier.config?.set('lastUpdateCheck', Date.now());
+    return info;
+  } catch {
+    return undefined;
+  }
+}
+
+// Extracted out of createSelfUpdateDeps's installUpdate closure so both
+// the background auto-update and the explicit `update` command share one
+// install path (no duplicated npm-install logic).
+export async function installPackageUpdate(pkgName: string, latestVersion: string): Promise<void> {
+  logger.info(`Updating gitai to ${latestVersion}...`);
+  await execa('npm', ['install', '-g', `${pkgName}@${latestVersion}`]);
+  logger.success(`Updated to gitai ${latestVersion}. Re-run gitai to use the new version.`);
+}
+
+export type UpdateCommandOutcome = 'up-to-date' | 'updated' | 'update-failed' | 'check-failed';
+
+export interface UpdateCommandDeps {
+  currentVersion: string;
+  fetchVersionInfo: () => Promise<UpdateInfo | undefined>;
+  installUpdate: (latestVersion: string) => Promise<void>;
+}
+
+export async function runUpdateCommand(deps: UpdateCommandDeps): Promise<UpdateCommandOutcome> {
+  logger.info(`📦 Current version: ${deps.currentVersion}`);
+
+  let info: UpdateInfo | undefined;
+  try {
+    info = await deps.fetchVersionInfo();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Could not check the latest version: ${message}`);
+    return 'check-failed';
+  }
+
+  if (!info) {
+    logger.error(
+      'Could not check the latest version. Check your network connection and try again.'
+    );
+    return 'check-failed';
+  }
+
+  logger.info(`🌐 Latest published version: ${info.latest}`);
+
+  if (!semver.valid(info.latest)) {
+    logger.error(`Registry returned an invalid version (${info.latest}). Skipping update.`);
+    return 'check-failed';
+  }
+
+  // Never install a version that isn't strictly newer — protects against a
+  // compromised/misconfigured registry replaying an older "latest" (silent
+  // downgrade). This command installs with no confirmation prompt, so this
+  // check is the only safety net.
+  if (!semver.gt(info.latest, deps.currentVersion)) {
+    logger.success('You are already using the latest version of gitai.');
+    return 'up-to-date';
+  }
+
+  try {
+    await deps.installUpdate(info.latest);
+    return 'updated';
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Update failed: ${message}`);
+    return 'update-failed';
+  }
 }

@@ -25,12 +25,17 @@ import { logger } from './utils/logger.js';
 import {
   checkForSelfUpdate,
   createSelfUpdateDeps,
+  fetchVersionInfo,
+  installPackageUpdate,
+  runUpdateCommand,
   type SelfUpdateOutcome,
 } from './utils/self-update.js';
 import { runSetup } from './utils/setup.js';
 import { type ClaudeEnvSettings, readClaudeSettings } from './utils/claude-settings.js';
 
 import { engines, name, version } from './version.js';
+
+const PACKAGE_NAME = '@notyped/gitai';
 
 // 0. Validate Node Version
 if (!validateNodeVersion()) {
@@ -202,7 +207,25 @@ program.on('--help', () => {
   console.log(chalk.green('    $ gitai . "feat: wip" --push'));
   console.log(chalk.dim('    Run with base message and push'));
   console.log('');
+  console.log(chalk.green('    $ gitai update'));
+  console.log(chalk.dim('    Check for a new version and install it if available'));
+  console.log('');
 });
+
+program
+  .command('update')
+  .description('Check for a new gitai version and install it if available')
+  .action(async () => {
+    const outcome = await runUpdateCommand({
+      currentVersion: version,
+      fetchVersionInfo: () => fetchVersionInfo(PACKAGE_NAME, version),
+      installUpdate: (latestVersion) => installPackageUpdate(PACKAGE_NAME, latestVersion),
+    });
+
+    if (outcome === 'check-failed' || outcome === 'update-failed') {
+      process.exit(1);
+    }
+  });
 
 program
   .argument('[projectPath]', 'The path to the project', '.')
@@ -228,9 +251,7 @@ program
 
       logger.header(`Gitai v${version}`);
 
-      const updateOutcome = await checkForSelfUpdate(
-        createSelfUpdateDeps('@notyped/gitai', version)
-      );
+      const updateOutcome = await checkForSelfUpdate(createSelfUpdateDeps(PACKAGE_NAME, version));
       if (updateOutcome === 'installed') {
         process.exit(0);
       }
@@ -271,4 +292,4 @@ program
     }
   );
 
-program.parse();
+await program.parseAsync();
