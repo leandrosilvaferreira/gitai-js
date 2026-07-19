@@ -292,4 +292,4 @@ program
     }
   );
 
-program.parse();
+await program.parseAsync();

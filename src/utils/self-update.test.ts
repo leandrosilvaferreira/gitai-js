@@ -152,3 +152,53 @@ test('runUpdateCommand returns update-failed and does not throw when installUpda
 
   assert.equal(result, 'update-failed');
 });
+
+test('runUpdateCommand returns check-failed and never calls installUpdate when the latest version is not valid semver', async () => {
+  let installCalled = false;
+  const deps: UpdateCommandDeps = {
+    currentVersion: '1.4.0',
+    fetchVersionInfo: async () => ({ ...SAMPLE_UPDATE, latest: 'not-a-version' }),
+    installUpdate: async () => {
+      installCalled = true;
+    },
+  };
+
+  const result = await runUpdateCommand(deps);
+
+  assert.equal(result, 'check-failed');
+  assert.equal(installCalled, false);
+});
+
+test('runUpdateCommand returns up-to-date and never calls installUpdate when the registry reports a version older than current (downgrade protection)', async () => {
+  let installCalled = false;
+  const deps: UpdateCommandDeps = {
+    currentVersion: '1.4.0',
+    fetchVersionInfo: async () => ({ ...SAMPLE_UPDATE, latest: '1.0.0', current: '1.4.0' }),
+    installUpdate: async () => {
+      installCalled = true;
+    },
+  };
+
+  const result = await runUpdateCommand(deps);
+
+  assert.equal(result, 'up-to-date');
+  assert.equal(installCalled, false);
+});
+
+test('runUpdateCommand returns check-failed and never calls installUpdate when fetchVersionInfo rejects', async () => {
+  let installCalled = false;
+  const deps: UpdateCommandDeps = {
+    currentVersion: '1.4.0',
+    fetchVersionInfo: async () => {
+      throw new Error('registry unreachable');
+    },
+    installUpdate: async () => {
+      installCalled = true;
+    },
+  };
+
+  const result = await runUpdateCommand(deps);
+
+  assert.equal(result, 'check-failed');
+  assert.equal(installCalled, false);
+});

@@ -1,5 +1,6 @@
 import { execa } from 'execa';
 import inquirer from 'inquirer';
+import semver from 'semver';
 import updateNotifier, { type UpdateInfo } from 'update-notifier';
 
 import { logger } from './logger.js';
@@ -110,7 +111,15 @@ export interface UpdateCommandDeps {
 export async function runUpdateCommand(deps: UpdateCommandDeps): Promise<UpdateCommandOutcome> {
   logger.info(`📦 Current version: ${deps.currentVersion}`);
 
-  const info = await deps.fetchVersionInfo();
+  let info: UpdateInfo | undefined;
+  try {
+    info = await deps.fetchVersionInfo();
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    logger.error(`Could not check the latest version: ${message}`);
+    return 'check-failed';
+  }
+
   if (!info) {
     logger.error(
       'Could not check the latest version. Check your network connection and try again.'
@@ -120,7 +129,16 @@ export async function runUpdateCommand(deps: UpdateCommandDeps): Promise<UpdateC
 
   logger.info(`🌐 Latest published version: ${info.latest}`);
 
-  if (info.type === 'latest') {
+  if (!semver.valid(info.latest)) {
+    logger.error(`Registry returned an invalid version (${info.latest}). Skipping update.`);
+    return 'check-failed';
+  }
+
+  // Never install a version that isn't strictly newer — protects against a
+  // compromised/misconfigured registry replaying an older "latest" (silent
+  // downgrade). This command installs with no confirmation prompt, so this
+  // check is the only safety net.
+  if (!semver.gt(info.latest, deps.currentVersion)) {
     logger.success('You are already using the latest version of gitai.');
     return 'up-to-date';
   }
