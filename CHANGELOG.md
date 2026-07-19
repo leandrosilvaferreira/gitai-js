@@ -1,3 +1,22 @@
+# Release 1.5.0
+A focused update that adds a new update command and enhances Claude-powered workflows with smarter worktree management and validation.
+
+### New Features
+- Add `gitai update` command (#7) (9f65312)
+- Add Claude hooks for worktree management and session-scoped validation (d6ea804)
+
+### Bug Fixes
+- No bug fixes in this release.
+
+### Other Changes
+- No additional changes in this release.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.5.0](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.4.0...v1.5.0)
+
+---
+
 # Release 1.4.0
 This release streamlines and hardens the release process with a new non-interactive, self-verifying flow, plus improved documentation and updated Claude configuration.
 
