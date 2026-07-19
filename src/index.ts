@@ -207,6 +207,9 @@ program.on('--help', () => {
   console.log(chalk.green('    $ gitai . "feat: wip" --push'));
   console.log(chalk.dim('    Run with base message and push'));
   console.log('');
+  console.log(chalk.green('    $ gitai update'));
+  console.log(chalk.dim('    Check for a new version and install it if available'));
+  console.log('');
 });
 
 program
