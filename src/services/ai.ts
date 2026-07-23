@@ -1,6 +1,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 import Groq from 'groq-sdk';
 import OpenAI from 'openai';
+import { isContextLengthError } from '../utils/ai-errors.js';
+import { buildDiffVariants } from '../utils/diff-budget.js';
 import { logger } from '../utils/logger.js';
 
 interface AIConfig {
@@ -156,12 +158,35 @@ Line 3+: [detailed explanation of changes, reasons, and impact]
 
   async generateCommitMessage(input: CommitMessageInput): Promise<string> {
     const systemPrompt = this.getCommitSystemPrompt();
-    const userPrompt = this.getCommitUserPrompt(input);
+    const diffVariants = buildDiffVariants(input.diffOutput);
+    let lastError: unknown;
 
-    const commitMessage = await this.callApi(systemPrompt, userPrompt);
-    const signature =
-      '\n\n🤖 Commit generated with [GitaiJS](https://github.com/leandrosilvaferreira/gitai-js)';
-    return commitMessage + signature;
+    for (let attempt = 0; attempt < diffVariants.length; attempt += 1) {
+      const userPrompt = this.getCommitUserPrompt({ ...input, diffOutput: diffVariants[attempt] });
+
+      try {
+        const commitMessage = await this.callApi(systemPrompt, userPrompt);
+        const signature =
+          '\n\n🤖 Commit generated with [GitaiJS](https://github.com/leandrosilvaferreira/gitai-js)';
+        return commitMessage + signature;
+      } catch (error: unknown) {
+        if (!isContextLengthError(error)) {
+          throw error;
+        }
+        lastError = error;
+        if (attempt === diffVariants.length - 1) {
+          break;
+        }
+        logger.warning(
+          `Diff too large for the model's context window (attempt ${attempt + 1}/${diffVariants.length}). Retrying with a reduced diff...`
+        );
+      }
+    }
+
+    throw new Error(
+      "Commit message generation failed: diff exceeds the model's context window even after reducing it to a file list. Try committing in smaller batches, or use a model with a larger context window.",
+      { cause: lastError }
+    );
   }
 
   // Logic for release notes (used by releaser.ts)

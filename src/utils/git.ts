@@ -68,9 +68,18 @@ export async function getDiffWithNewFiles(cwd: string): Promise<string> {
   // --cached: show staged changes
   // --ignore-all-space: ignore whitespace-only changes
   // --diff-filter=d: exclude deleted files from the diff content
+  // --src-prefix/--dst-prefix: force the standard a/ b/ header regardless of the
+  // user's diff.noprefix/diff.mnemonicPrefix git config (diff-budget.ts parses on it)
   // Git automatically handles binary files by showing "Binary files differ"
   const { stdout } = await runGitCommand(
-    ['diff', '--cached', '--ignore-all-space', '--diff-filter=d'],
+    [
+      'diff',
+      '--cached',
+      '--ignore-all-space',
+      '--diff-filter=d',
+      '--src-prefix=a/',
+      '--dst-prefix=b/',
+    ],
     cwd
   );
 

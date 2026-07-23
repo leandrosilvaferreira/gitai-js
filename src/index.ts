@@ -155,6 +155,20 @@ async function commitLocalChangesIfAny(
   logger.success('Gitai successfully committed local changes.');
 }
 
+async function commitLocalChangesOrExit(
+  projectPath: string,
+  aiService: AIService,
+  baseMessageArg: string | undefined
+): Promise<void> {
+  try {
+    await commitLocalChangesIfAny(projectPath, aiService, baseMessageArg);
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    logger.error(`Failed to commit local changes: ${errorMessage}`);
+    process.exit(1);
+  }
+}
+
 async function pushIfRequested(projectPath: string): Promise<void> {
   await runGitCommand(['fetch'], projectPath);
   const prePushStatus = await getSyncStatus(projectPath);
@@ -272,7 +286,7 @@ program
       }
 
       // 2. Commit local changes, if any
-      await commitLocalChangesIfAny(projectPath, aiService, baseMessageArg);
+      await commitLocalChangesOrExit(projectPath, aiService, baseMessageArg);
 
       // 3. Sync with remote (fetch, then fast-forward or confirmed merge)
       const syncResult = await syncWithRemote(projectPath, () => confirmAutoMerge(projectPath));
