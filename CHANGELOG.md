@@ -1,3 +1,21 @@
+# Release 1.6.0
+This release improves reliability by adding an automatic retry mechanism for commit message generation when context limits are exceeded.
+
+### New Features
+- Retry commit message generation with a reduced diff when context overflow occurs (1c07189).
+
+### Bug Fixes
+- None.
+
+### Other Changes
+- None.
+
+We thank all the contributors who made this release possible! For more details, please refer to the complete version notes.
+
+**Full Changelog:** [See commits for v1.6.0](https://github.com/leandrosilvaferreira/gitai-js/compare/v1.5.0...v1.6.0)
+
+---
+
 # Release 1.5.0
 A focused update that adds a new update command and enhances Claude-powered workflows with smarter worktree management and validation.
 
